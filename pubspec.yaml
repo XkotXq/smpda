@@ -1,0 +1,48 @@
+name: smpda
+description: >
+  PDA app for Honeywell Android handhelds (Materiały SM - receive/issue/
+  scan), talking to the same wpsApi backend as the WPS dashboard.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI - ported shadcn/ui components + Lucide icons, so this app can match
+  # WPS's own look (same navy/neutral palette, same icon set - see
+  # theme/app_colors.dart, sourced straight from WPS's app/globals.css).
+  shadcn_ui: ^0.57.0
+
+  # Honeywell hardware barcode scanner (trigger button + decode events) -
+  # Android-only, needs the native DataCollection.aar wired into
+  # android/ once `flutter create .` has generated that folder (see this
+  # package's own setup docs and this project's README).
+  honeywell_scanner: ^8.0.1
+
+  # State management - async data from wpsApi, operator session, scanner
+  # connection state.
+  flutter_riverpod: ^3.4.3
+
+  # HTTP client for wpsApi - an interceptor attaches the shared Bearer
+  # API_TOKEN to every request, mirroring wps/lib/smItemsApi.js's own
+  # apiFetch wrapper.
+  dio: ^5.11.1
+
+  # Operator name / API base URL persisted across app restarts (the PDA
+  # stays logged in as "whoever is holding it" for a shift, same idea as
+  # wps's own operator field - not a secret, so plain shared prefs is
+  # enough, no secure storage needed).
+  shared_preferences: ^2.5.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
