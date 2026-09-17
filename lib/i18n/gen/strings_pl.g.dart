@@ -45,6 +45,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$settings$pl settings = Translations$settings$pl._(_root);
 	late final Translations$scan$pl scan = Translations$scan$pl._(_root);
 	late final Translations$nav$pl nav = Translations$nav$pl._(_root);
+	late final Translations$dashboard$pl dashboard = Translations$dashboard$pl._(_root);
+	late final Translations$frp$pl frp = Translations$frp$pl._(_root);
 }
 
 // Path: login
@@ -134,6 +136,32 @@ class Translations$nav$pl {
 
 	/// pl: 'Ustawienia'
 	String get settings => 'Ustawienia';
+
+	/// pl: 'Wstecz'
+	String get back => 'Wstecz';
+}
+
+// Path: dashboard
+class Translations$dashboard$pl {
+	Translations$dashboard$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+	late final Translations$dashboard$materialsSm$pl materialsSm = Translations$dashboard$materialsSm$pl._(_root);
+	late final Translations$dashboard$frp$pl frp = Translations$dashboard$frp$pl._(_root);
+}
+
+// Path: frp
+class Translations$frp$pl {
+	Translations$frp$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Sekcja FRP jest w budowie.'
+	String get placeholder => 'Sekcja FRP jest w budowie.';
 }
 
 // Path: settings.theme
@@ -155,6 +183,36 @@ class Translations$settings$theme$pl {
 
 	/// pl: 'Ciemny'
 	String get dark => 'Ciemny';
+}
+
+// Path: dashboard.materialsSm
+class Translations$dashboard$materialsSm$pl {
+	Translations$dashboard$materialsSm$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Materiały SM'
+	String get title => 'Materiały SM';
+
+	/// pl: 'Przyjęcia i wydania'
+	String get subtitle => 'Przyjęcia i wydania';
+}
+
+// Path: dashboard.frp
+class Translations$dashboard$frp$pl {
+	Translations$dashboard$frp$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'FRP'
+	String get title => 'FRP';
+
+	/// pl: 'Kontrola materiałów FRP'
+	String get subtitle => 'Kontrola materiałów FRP';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -186,6 +244,12 @@ extension on Translations {
 			'scan.waitingManual' => 'Brak zeskanowanych kodów - wpisz jeden powyżej.',
 			'nav.scan' => 'Skanuj',
 			'nav.settings' => 'Ustawienia',
+			'nav.back' => 'Wstecz',
+			'dashboard.materialsSm.title' => 'Materiały SM',
+			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',
+			'dashboard.frp.title' => 'FRP',
+			'dashboard.frp.subtitle' => 'Kontrola materiałów FRP',
+			'frp.placeholder' => 'Sekcja FRP jest w budowie.',
 			_ => null,
 		};
 	}

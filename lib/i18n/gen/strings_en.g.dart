@@ -42,6 +42,8 @@ class TranslationsEn with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$settings$en settings = _Translations$settings$en._(_root);
 	@override late final _Translations$scan$en scan = _Translations$scan$en._(_root);
 	@override late final _Translations$nav$en nav = _Translations$nav$en._(_root);
+	@override late final _Translations$dashboard$en dashboard = _Translations$dashboard$en._(_root);
+	@override late final _Translations$frp$en frp = _Translations$frp$en._(_root);
 }
 
 // Path: login
@@ -96,6 +98,28 @@ class _Translations$nav$en implements Translations$nav$pl {
 	// Translations
 	@override String get scan => 'Scan';
 	@override String get settings => 'Settings';
+	@override String get back => 'Back';
+}
+
+// Path: dashboard
+class _Translations$dashboard$en implements Translations$dashboard$pl {
+	_Translations$dashboard$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override late final _Translations$dashboard$materialsSm$en materialsSm = _Translations$dashboard$materialsSm$en._(_root);
+	@override late final _Translations$dashboard$frp$en frp = _Translations$dashboard$frp$en._(_root);
+}
+
+// Path: frp
+class _Translations$frp$en implements Translations$frp$pl {
+	_Translations$frp$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get placeholder => 'The FRP section is under construction.';
 }
 
 // Path: settings.theme
@@ -109,6 +133,28 @@ class _Translations$settings$theme$en implements Translations$settings$theme$pl 
 	@override String get system => 'System';
 	@override String get light => 'Light';
 	@override String get dark => 'Dark';
+}
+
+// Path: dashboard.materialsSm
+class _Translations$dashboard$materialsSm$en implements Translations$dashboard$materialsSm$pl {
+	_Translations$dashboard$materialsSm$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Materiały SM';
+	@override String get subtitle => 'Receipts and issues';
+}
+
+// Path: dashboard.frp
+class _Translations$dashboard$frp$en implements Translations$dashboard$frp$pl {
+	_Translations$dashboard$frp$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'FRP';
+	@override String get subtitle => 'FRP material checks';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -140,6 +186,12 @@ extension on TranslationsEn {
 			'scan.waitingManual' => 'No scanned codes yet - type one above.',
 			'nav.scan' => 'Scan',
 			'nav.settings' => 'Settings',
+			'nav.back' => 'Back',
+			'dashboard.materialsSm.title' => 'Materiały SM',
+			'dashboard.materialsSm.subtitle' => 'Receipts and issues',
+			'dashboard.frp.title' => 'FRP',
+			'dashboard.frp.subtitle' => 'FRP material checks',
+			'frp.placeholder' => 'The FRP section is under construction.',
 			_ => null,
 		};
 	}

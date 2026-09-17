@@ -28,6 +28,20 @@
   },
   "nav": {
     "scan": "Scan",
-    "settings": "Settings"
+    "settings": "Settings",
+    "back": "Back"
+  },
+  "dashboard": {
+    "materialsSm": {
+      "title": "Materiały SM",
+      "subtitle": "Receipts and issues"
+    },
+    "frp": {
+      "title": "FRP",
+      "subtitle": "FRP material checks"
+    }
+  },
+  "frp": {
+    "placeholder": "The FRP section is under construction."
   }
 }

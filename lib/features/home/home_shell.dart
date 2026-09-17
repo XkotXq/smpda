@@ -3,15 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../i18n/gen/strings.g.dart';
+import '../../widgets/section_header.dart';
 import '../scan/scan_screen.dart';
 import '../settings/settings_screen.dart';
 
-/// Simplest possible shell for now: two destinations behind a bottom bar
-/// of plain ShadButton.ghost icons (not Material's NavigationBar, which
-/// would look and animate nothing like the rest of a shadcn-styled app).
-/// Swap this out once there's a real navigation structure (przyjęcie/
-/// wydanie flows, most likely a proper router) - it's a placeholder for
-/// "there are screens and you can move between them", not a final IA.
+/// Materiały SM section - pushed from DashboardScreen's own tile. Two
+/// destinations behind a bottom bar of plain ShadButton.ghost icons (not
+/// Material's NavigationBar, which would look and animate nothing like the
+/// rest of a shadcn-styled app). Swap this out once there's a real
+/// navigation structure (przyjęcie/wydanie flows, most likely a proper
+/// router) - it's a placeholder for "there are screens and you can move
+/// between them", not a final IA.
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
@@ -32,16 +34,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     ];
     return ColoredBox(
       color: theme.colorScheme.background,
-      child: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: IndexedStack(
-                index: _index,
-                children: const [ScanScreen(), SettingsScreen()],
-              ),
+      child: Column(
+        children: [
+          SectionHeader(title: t.dashboard.materialsSm.title),
+          Expanded(
+            child: IndexedStack(
+              index: _index,
+              children: const [ScanScreen(), SettingsScreen()],
             ),
-            DecoratedBox(
+          ),
+          SafeArea(
+            top: false,
+            child: DecoratedBox(
               decoration: BoxDecoration(
                 color: theme.colorScheme.card,
                 border: Border(top: BorderSide(color: theme.colorScheme.border)),
@@ -73,8 +77,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -5,7 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'core/session/session_providers.dart';
 import 'features/auth/login_screen.dart';
-import 'features/home/home_shell.dart';
+import 'features/dashboard/dashboard_screen.dart';
 import 'i18n/gen/strings.g.dart';
 import 'theme/app_theme.dart';
 
@@ -41,9 +41,9 @@ class SmPdaApp extends ConsumerWidget {
 }
 
 /// Shows LoginScreen until appSettingsProvider reports a CIP session
-/// (AppSettings.isLoggedIn), then HomeShell - the switch is reactive, so
-/// LoginScreen's own setLoggedIn call is enough to move past this without
-/// any explicit navigation.
+/// (AppSettings.isLoggedIn), then DashboardScreen (the section-picker
+/// tiles) - the switch is reactive, so LoginScreen's own setLoggedIn call
+/// is enough to move past this without any explicit navigation.
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
 
@@ -53,7 +53,7 @@ class AuthGate extends ConsumerWidget {
     return settingsAsync.when(
       loading: () => const Center(child: ShadProgress()),
       error: (error, _) => Center(child: Text('$error')),
-      data: (settings) => settings.isLoggedIn ? const HomeShell() : const LoginScreen(),
+      data: (settings) => settings.isLoggedIn ? const DashboardScreen() : const LoginScreen(),
     );
   }
 }

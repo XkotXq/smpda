@@ -28,6 +28,20 @@
   },
   "nav": {
     "scan": "Skanuj",
-    "settings": "Ustawienia"
+    "settings": "Ustawienia",
+    "back": "Wstecz"
+  },
+  "dashboard": {
+    "materialsSm": {
+      "title": "Materiały SM",
+      "subtitle": "Przyjęcia i wydania"
+    },
+    "frp": {
+      "title": "FRP",
+      "subtitle": "Kontrola materiałów FRP"
+    }
+  },
+  "frp": {
+    "placeholder": "Sekcja FRP jest w budowie."
   }
 }
