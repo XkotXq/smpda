@@ -43,8 +43,8 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	// Translations
 	late final Translations$login$pl login = Translations$login$pl._(_root);
 	late final Translations$settings$pl settings = Translations$settings$pl._(_root);
-	late final Translations$scan$pl scan = Translations$scan$pl._(_root);
 	late final Translations$nav$pl nav = Translations$nav$pl._(_root);
+	late final Translations$operations$pl operations = Translations$operations$pl._(_root);
 	late final Translations$dashboard$pl dashboard = Translations$dashboard$pl._(_root);
 	late final Translations$frp$pl frp = Translations$frp$pl._(_root);
 }
@@ -99,30 +99,6 @@ class Translations$settings$pl {
 	late final Translations$settings$theme$pl theme = Translations$settings$theme$pl._(_root);
 }
 
-// Path: scan
-class Translations$scan$pl {
-	Translations$scan$pl._(this._root);
-
-	final Translations _root; // ignore: unused_field
-
-	// Translations
-
-	/// pl: 'Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, żeby zasymulować skan.'
-	String get noHardware => 'Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, żeby zasymulować skan.';
-
-	/// pl: 'Wpisz kod i zatwierdź'
-	String get manualPlaceholder => 'Wpisz kod i zatwierdź';
-
-	/// pl: 'Symuluj skan'
-	String get simulate => 'Symuluj skan';
-
-	/// pl: 'Naciśnij spust skanera, aby zeskanować kod.'
-	String get waitingHardware => 'Naciśnij spust skanera, aby zeskanować kod.';
-
-	/// pl: 'Brak zeskanowanych kodów - wpisz jeden powyżej.'
-	String get waitingManual => 'Brak zeskanowanych kodów - wpisz jeden powyżej.';
-}
-
 // Path: nav
 class Translations$nav$pl {
 	Translations$nav$pl._(this._root);
@@ -131,14 +107,83 @@ class Translations$nav$pl {
 
 	// Translations
 
-	/// pl: 'Skanuj'
-	String get scan => 'Skanuj';
+	/// pl: 'Operacje'
+	String get operations => 'Operacje';
 
 	/// pl: 'Ustawienia'
 	String get settings => 'Ustawienia';
 
 	/// pl: 'Wstecz'
 	String get back => 'Wstecz';
+}
+
+// Path: operations
+class Translations$operations$pl {
+	Translations$operations$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Przyjęcie'
+	String get modeReceive => 'Przyjęcie';
+
+	/// pl: 'Wydanie'
+	String get modeIssue => 'Wydanie';
+
+	/// pl: 'Zeskanuj lub wpisz kod'
+	String get scanPlaceholder => 'Zeskanuj lub wpisz kod';
+
+	/// pl: 'Naciśnij spust skanera lub wpisz kod ręcznie.'
+	String get scanHint => 'Naciśnij spust skanera lub wpisz kod ręcznie.';
+
+	/// pl: 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.'
+	String get queueEmpty => 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.';
+
+	/// pl: 'Do zatwierdzenia ({count})'
+	String queueTitle({required Object count}) => 'Do zatwierdzenia (${count})';
+
+	/// pl: 'Nr jednostki'
+	String get unitLabel => 'Nr jednostki';
+
+	/// pl: 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)'
+	String get unitOptional => 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)';
+
+	/// pl: 'Ilość'
+	String get quantityLabel => 'Ilość';
+
+	/// pl: 'Dostępne: {value}'
+	String available({required Object value}) => 'Dostępne: ${value}';
+
+	/// pl: 'Zatwierdź'
+	String get submit => 'Zatwierdź';
+
+	/// pl: 'Zapisywanie...'
+	String get submitting => 'Zapisywanie...';
+
+	/// pl: 'Zapisano.'
+	String get submitted => 'Zapisano.';
+
+	/// pl: 'Usuń'
+	String get remove => 'Usuń';
+
+	/// pl: 'Wybierz co wydać'
+	String get pickTitle => 'Wybierz co wydać';
+
+	/// pl: 'Ilość nieprzypisana'
+	String get pickPending => 'Ilość nieprzypisana';
+
+	/// pl: 'Jednostka {unitId}'
+	String pickUnit({required Object unitId}) => 'Jednostka ${unitId}';
+
+	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
+	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
+
+	/// pl: 'Ten wpis jest już w kolejce.'
+	String get toastAlready => 'Ten wpis jest już w kolejce.';
+
+	/// pl: 'Brak dostępnej ilości tego materiału do wydania.'
+	String get toastNotIssuable => 'Brak dostępnej ilości tego materiału do wydania.';
 }
 
 // Path: dashboard
@@ -237,14 +282,29 @@ extension on Translations {
 			'settings.theme.system' => 'Systemowy',
 			'settings.theme.light' => 'Jasny',
 			'settings.theme.dark' => 'Ciemny',
-			'scan.noHardware' => 'Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, żeby zasymulować skan.',
-			'scan.manualPlaceholder' => 'Wpisz kod i zatwierdź',
-			'scan.simulate' => 'Symuluj skan',
-			'scan.waitingHardware' => 'Naciśnij spust skanera, aby zeskanować kod.',
-			'scan.waitingManual' => 'Brak zeskanowanych kodów - wpisz jeden powyżej.',
-			'nav.scan' => 'Skanuj',
+			'nav.operations' => 'Operacje',
 			'nav.settings' => 'Ustawienia',
 			'nav.back' => 'Wstecz',
+			'operations.modeReceive' => 'Przyjęcie',
+			'operations.modeIssue' => 'Wydanie',
+			'operations.scanPlaceholder' => 'Zeskanuj lub wpisz kod',
+			'operations.scanHint' => 'Naciśnij spust skanera lub wpisz kod ręcznie.',
+			'operations.queueEmpty' => 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.',
+			'operations.queueTitle' => ({required Object count}) => 'Do zatwierdzenia (${count})',
+			'operations.unitLabel' => 'Nr jednostki',
+			'operations.unitOptional' => 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)',
+			'operations.quantityLabel' => 'Ilość',
+			'operations.available' => ({required Object value}) => 'Dostępne: ${value}',
+			'operations.submit' => 'Zatwierdź',
+			'operations.submitting' => 'Zapisywanie...',
+			'operations.submitted' => 'Zapisano.',
+			'operations.remove' => 'Usuń',
+			'operations.pickTitle' => 'Wybierz co wydać',
+			'operations.pickPending' => 'Ilość nieprzypisana',
+			'operations.pickUnit' => ({required Object unitId}) => 'Jednostka ${unitId}',
+			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
+			'operations.toastAlready' => 'Ten wpis jest już w kolejce.',
+			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',
 			'dashboard.frp.title' => 'FRP',

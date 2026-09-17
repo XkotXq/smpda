@@ -40,8 +40,8 @@ class TranslationsEn with BaseTranslations<AppLocale, Translations> implements T
 	// Translations
 	@override late final _Translations$login$en login = _Translations$login$en._(_root);
 	@override late final _Translations$settings$en settings = _Translations$settings$en._(_root);
-	@override late final _Translations$scan$en scan = _Translations$scan$en._(_root);
 	@override late final _Translations$nav$en nav = _Translations$nav$en._(_root);
+	@override late final _Translations$operations$en operations = _Translations$operations$en._(_root);
 	@override late final _Translations$dashboard$en dashboard = _Translations$dashboard$en._(_root);
 	@override late final _Translations$frp$en frp = _Translations$frp$en._(_root);
 }
@@ -75,20 +75,6 @@ class _Translations$settings$en implements Translations$settings$pl {
 	@override late final _Translations$settings$theme$en theme = _Translations$settings$theme$en._(_root);
 }
 
-// Path: scan
-class _Translations$scan$en implements Translations$scan$pl {
-	_Translations$scan$en._(this._root);
-
-	final TranslationsEn _root; // ignore: unused_field
-
-	// Translations
-	@override String get noHardware => 'No physical scanner on this device - type a code manually to simulate a scan.';
-	@override String get manualPlaceholder => 'Type a code and submit';
-	@override String get simulate => 'Simulate scan';
-	@override String get waitingHardware => 'Pull the scanner trigger to scan a code.';
-	@override String get waitingManual => 'No scanned codes yet - type one above.';
-}
-
 // Path: nav
 class _Translations$nav$en implements Translations$nav$pl {
 	_Translations$nav$en._(this._root);
@@ -96,9 +82,38 @@ class _Translations$nav$en implements Translations$nav$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get scan => 'Scan';
+	@override String get operations => 'Operations';
 	@override String get settings => 'Settings';
 	@override String get back => 'Back';
+}
+
+// Path: operations
+class _Translations$operations$en implements Translations$operations$pl {
+	_Translations$operations$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get modeReceive => 'Receive';
+	@override String get modeIssue => 'Issue';
+	@override String get scanPlaceholder => 'Scan or type a code';
+	@override String get scanHint => 'Pull the scanner trigger or type a code manually.';
+	@override String get queueEmpty => 'The queue is empty - scan a material to add a line.';
+	@override String queueTitle({required Object count}) => 'To confirm (${count})';
+	@override String get unitLabel => 'Unit no.';
+	@override String get unitOptional => 'Unit no. (optional - blank = unassigned quantity)';
+	@override String get quantityLabel => 'Quantity';
+	@override String available({required Object value}) => 'Available: ${value}';
+	@override String get submit => 'Confirm';
+	@override String get submitting => 'Saving...';
+	@override String get submitted => 'Saved.';
+	@override String get remove => 'Remove';
+	@override String get pickTitle => 'Choose what to issue';
+	@override String get pickPending => 'Unassigned quantity';
+	@override String pickUnit({required Object unitId}) => 'Unit ${unitId}';
+	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
+	@override String get toastAlready => 'That line is already queued.';
+	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 }
 
 // Path: dashboard
@@ -179,14 +194,29 @@ extension on TranslationsEn {
 			'settings.theme.system' => 'System',
 			'settings.theme.light' => 'Light',
 			'settings.theme.dark' => 'Dark',
-			'scan.noHardware' => 'No physical scanner on this device - type a code manually to simulate a scan.',
-			'scan.manualPlaceholder' => 'Type a code and submit',
-			'scan.simulate' => 'Simulate scan',
-			'scan.waitingHardware' => 'Pull the scanner trigger to scan a code.',
-			'scan.waitingManual' => 'No scanned codes yet - type one above.',
-			'nav.scan' => 'Scan',
+			'nav.operations' => 'Operations',
 			'nav.settings' => 'Settings',
 			'nav.back' => 'Back',
+			'operations.modeReceive' => 'Receive',
+			'operations.modeIssue' => 'Issue',
+			'operations.scanPlaceholder' => 'Scan or type a code',
+			'operations.scanHint' => 'Pull the scanner trigger or type a code manually.',
+			'operations.queueEmpty' => 'The queue is empty - scan a material to add a line.',
+			'operations.queueTitle' => ({required Object count}) => 'To confirm (${count})',
+			'operations.unitLabel' => 'Unit no.',
+			'operations.unitOptional' => 'Unit no. (optional - blank = unassigned quantity)',
+			'operations.quantityLabel' => 'Quantity',
+			'operations.available' => ({required Object value}) => 'Available: ${value}',
+			'operations.submit' => 'Confirm',
+			'operations.submitting' => 'Saving...',
+			'operations.submitted' => 'Saved.',
+			'operations.remove' => 'Remove',
+			'operations.pickTitle' => 'Choose what to issue',
+			'operations.pickPending' => 'Unassigned quantity',
+			'operations.pickUnit' => ({required Object unitId}) => 'Unit ${unitId}',
+			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
+			'operations.toastAlready' => 'That line is already queued.',
+			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',
 			'dashboard.frp.title' => 'FRP',

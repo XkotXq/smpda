@@ -24,8 +24,8 @@ only the user-visible name changed.
   - wraps the physical trigger + hardware decoder on Honeywell devices
   (`lib/core/scanner/barcode_scanner_service.dart`). Also exposes
   `simulateScan(code)` so scan-driven flows can be built/tested with no
-  hardware at all - wired into a manual-entry field on the scan screen,
-  always visible (not just a no-hardware fallback).
+  hardware at all - wired into a manual-entry field on the operations
+  screen, always visible (not just a no-hardware fallback).
 - **Auth**: CIP login (username/password) via wpsApi's existing
   `POST /api/auth/login` proxy (`lib/core/api/auth_api.dart`) - the same
   OAuth2 CIP session wps/stock use, not a separate scheme.
@@ -69,19 +69,54 @@ lib/
     api/                    Dio client + auth/sm-items/sm-operations/sm-catalog calls
     scanner/                Honeywell scanner wrapper (+ simulateScan for dev/testing)
     session/                persisted API URL/token, CIP session, theme, locale
+    utils/                  quantity.dart - sanitize/parse/format, mirrors wps's lib/quantityInput.js
   features/
     auth/                   LoginScreen (login/password only)
     dashboard/              DashboardScreen - tile picker (Materiały SM, FRP) shown after login
     frp/                    FrpScreen - placeholder, not built yet
-    home/                   HomeShell - Materiały SM section (bottom-bar: Scan/Settings)
-    scan/                   smoke-test screen: claims the scanner, lists scans
+    home/                   HomeShell - Materiały SM section (bottom-bar: Operacje/Ustawienia)
+    materials/              scan -> queue -> review -> submit przyjęcie/wydanie flow (see below)
     settings/               API URL/token, language, theme, logout
 ```
+
+### `features/materials/` - przyjęcie/wydanie
+
+`ReceiveIssueScreen` implements one scan -> queue -> review -> submit flow
+for both przyjęcie and wydanie, modeled on WPS's own proven
+BulkReceiveGrid/BulkIssuePanel UX (`../WPS/components/`) rather than a
+one-code-at-a-time form:
+
+- `receive_issue_models.dart` - `FlowMode` (receive/issue), `IssueKind`
+  (unit/aggregate/pending, mirroring wpsApi's own row-kind split),
+  `ReceiveLine`/`IssueLine` queue line types, `ScanOutcome` (what a scan
+  resolved to: added, needs a picker, unknown code, nothing available to
+  issue, or already queued).
+- `receive_issue_controller.dart` - `ReceiveIssueController` (Riverpod
+  `Notifier`). `scan(code)` does two-tier resolution: first checks every
+  cached item's units for a matching *unit tag* (issue mode only - a
+  spool's own label identifies an exact unit to issue in full), then
+  falls back to an *item-number* match against current stock, then
+  `sm_catalog`. An item-number match auto-queues when unambiguous (one
+  leaf to issue, or any receipt) and returns `ScanNeedsPick` when an
+  issue could mean more than one unit/pending remainder - the screen
+  opens a picker sheet for that case. `submit()` batches the whole queue
+  through one `SmItemsApi.upsert()` per touched item (clamp-not-delete
+  for aggregate/pending issues, drop-from-units-array for a full unit
+  issue, append-new-unit or increment pending/total for a receipt -
+  never delete an item at zero, since `sm_items` is shared with WPS's own
+  UI) plus one batched `SmOperationsApi.create()` call for history.
+- `materials_providers.dart` - cached `smItemsListProvider`/
+  `smCatalogListProvider` (`FutureProvider`s) the controller resolves
+  scans against, invalidated after a successful submit.
+- `receive_issue_screen.dart` - mode toggle, scan/manual-entry field
+  (reuses `BarcodeScannerService`), editable queue list, picker
+  `showShadSheet` for the ambiguous-issue case, submit button.
 
 ## Status - what's done
 
 - pubspec, theme, API client + models, scanner service wrapper, CIP
-  login, language/theme switching, settings/scan screens, app shell
+  login, language/theme switching, settings screen, przyjęcie/wydanie
+  flow (`features/materials/`), app shell
 - Native `android/` scaffolding (`flutter create .`), with
   honeywell_scanner's own native setup already wired in:
   `android/honeywell/` (its `build.gradle` + `honeywell.aar`, copied
@@ -101,9 +136,9 @@ lib/
   `build-tools`/cmake versions the Gradle plugins ask for on first
   build).
 
-Not yet built: any real przyjęcie/wydanie screen against wpsApi - `scan`
-is a smoke-test screen (lists whatever's been scanned/typed this
-session), and `settings` only holds the API URL/token/language/theme.
+Not yet run against a real device/emulator: the przyjęcie/wydanie flow
+only has `flutter analyze`/`flutter test` behind it so far, no manual
+click-through with `simulateScan` yet.
 
 ## Local dev environment (this machine)
 

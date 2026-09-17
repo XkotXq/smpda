@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart' show InkWell;
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -56,7 +55,7 @@ class DashboardScreen extends StatelessWidget {
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1,
+                childAspectRatio: 0.72,
                 children: [for (final tile in tiles) _DashboardTile(tile: tile)],
               ),
             ),
@@ -79,21 +78,31 @@ class _DashboardTile extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: theme.radius,
-        child: InkWell(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: tile.onTap,
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(tile.icon, size: 36, color: theme.colorScheme.primary),
-                const SizedBox(height: 12),
-                Text(tile.title, style: theme.textTheme.h4, textAlign: TextAlign.center),
+                Icon(tile.icon, size: 28, color: theme.colorScheme.primary),
+                const SizedBox(height: 8),
+                Text(
+                  tile.title,
+                  style: theme.textTheme.h4,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   tile.subtitle,
                   style: theme.textTheme.muted,
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),

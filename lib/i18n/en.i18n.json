@@ -19,17 +19,32 @@
       "dark": "Dark"
     }
   },
-  "scan": {
-    "noHardware": "No physical scanner on this device - type a code manually to simulate a scan.",
-    "manualPlaceholder": "Type a code and submit",
-    "simulate": "Simulate scan",
-    "waitingHardware": "Pull the scanner trigger to scan a code.",
-    "waitingManual": "No scanned codes yet - type one above."
-  },
   "nav": {
-    "scan": "Scan",
+    "operations": "Operations",
     "settings": "Settings",
     "back": "Back"
+  },
+  "operations": {
+    "modeReceive": "Receive",
+    "modeIssue": "Issue",
+    "scanPlaceholder": "Scan or type a code",
+    "scanHint": "Pull the scanner trigger or type a code manually.",
+    "queueEmpty": "The queue is empty - scan a material to add a line.",
+    "queueTitle": "To confirm ({count})",
+    "unitLabel": "Unit no.",
+    "unitOptional": "Unit no. (optional - blank = unassigned quantity)",
+    "quantityLabel": "Quantity",
+    "available": "Available: {value}",
+    "submit": "Confirm",
+    "submitting": "Saving...",
+    "submitted": "Saved.",
+    "remove": "Remove",
+    "pickTitle": "Choose what to issue",
+    "pickPending": "Unassigned quantity",
+    "pickUnit": "Unit {unitId}",
+    "toastUnknown": "Unknown code - no matching material or unit.",
+    "toastAlready": "That line is already queued.",
+    "toastNotIssuable": "No available quantity of this material to issue."
   },
   "dashboard": {
     "materialsSm": {

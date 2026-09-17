@@ -19,17 +19,32 @@
       "dark": "Ciemny"
     }
   },
-  "scan": {
-    "noHardware": "Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, żeby zasymulować skan.",
-    "manualPlaceholder": "Wpisz kod i zatwierdź",
-    "simulate": "Symuluj skan",
-    "waitingHardware": "Naciśnij spust skanera, aby zeskanować kod.",
-    "waitingManual": "Brak zeskanowanych kodów - wpisz jeden powyżej."
-  },
   "nav": {
-    "scan": "Skanuj",
+    "operations": "Operacje",
     "settings": "Ustawienia",
     "back": "Wstecz"
+  },
+  "operations": {
+    "modeReceive": "Przyjęcie",
+    "modeIssue": "Wydanie",
+    "scanPlaceholder": "Zeskanuj lub wpisz kod",
+    "scanHint": "Naciśnij spust skanera lub wpisz kod ręcznie.",
+    "queueEmpty": "Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.",
+    "queueTitle": "Do zatwierdzenia ({count})",
+    "unitLabel": "Nr jednostki",
+    "unitOptional": "Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)",
+    "quantityLabel": "Ilość",
+    "available": "Dostępne: {value}",
+    "submit": "Zatwierdź",
+    "submitting": "Zapisywanie...",
+    "submitted": "Zapisano.",
+    "remove": "Usuń",
+    "pickTitle": "Wybierz co wydać",
+    "pickPending": "Ilość nieprzypisana",
+    "pickUnit": "Jednostka {unitId}",
+    "toastUnknown": "Nieznany kod - nie znaleziono materiału ani jednostki.",
+    "toastAlready": "Ten wpis jest już w kolejce.",
+    "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania."
   },
   "dashboard": {
     "materialsSm": {

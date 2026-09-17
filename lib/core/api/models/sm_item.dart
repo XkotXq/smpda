@@ -45,6 +45,32 @@ class SmItem {
         pendingQuantity: json['pendingQuantity'] as String?,
       );
 
+  /// [clearPendingQuantity] exists because plain `?? this.pendingQuantity`
+  /// can't tell "not touching this field" apart from "explicitly clear
+  /// it" - used when an issued pending quantity reaches 0 (see
+  /// ReceiveIssueController's submit reducer, mirroring wps's own
+  /// issueRow destructuring the field out entirely at that point).
+  SmItem copyWith({
+    String? itemName,
+    String? locationCode,
+    String? note,
+    String? totalQuantity,
+    List<SmUnit>? units,
+    String? pendingQuantity,
+    bool clearPendingQuantity = false,
+  }) {
+    return SmItem(
+      itemNo: itemNo,
+      itemName: itemName ?? this.itemName,
+      locationCode: locationCode ?? this.locationCode,
+      note: note ?? this.note,
+      trackedIndividually: trackedIndividually,
+      totalQuantity: totalQuantity ?? this.totalQuantity,
+      units: units ?? this.units,
+      pendingQuantity: clearPendingQuantity ? null : (pendingQuantity ?? this.pendingQuantity),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'itemNo': itemNo,
         'itemName': itemName,

@@ -6,3 +6,6 @@
 base_locale: pl
 input_directory: lib/i18n
 output_directory: lib/i18n/gen
+# {arg} instead of slang's dart-style default ${arg} - reads better in the
+# JSON source and needs no $ escaping for plain currency-less numbers.
+string_interpolation: braces
