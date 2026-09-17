@@ -7,6 +7,7 @@ import 'features/auth/login_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/frp/frp_screen.dart';
 import 'features/home/home_shell.dart';
+import 'features/materials/operation_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'i18n/gen/strings.g.dart';
 import 'widgets/section_scaffold.dart';
@@ -22,6 +23,7 @@ import 'widgets/section_scaffold.dart';
 const loginPath = '/login';
 const dashboardPath = '/dashboard';
 const materialsSmPath = '/materials-sm';
+const materialsSmOperationPath = '/materials-sm/operation';
 const frpPath = '/frp';
 const settingsPath = '/settings';
 
@@ -58,6 +60,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: loginPath, builder: (context, state) => const LoginScreen()),
       GoRoute(path: dashboardPath, builder: (context, state) => const DashboardScreen()),
       GoRoute(path: materialsSmPath, builder: (context, state) => const HomeShell()),
+      GoRoute(path: materialsSmOperationPath, builder: (context, state) => const OperationScreen()),
       GoRoute(
         path: frpPath,
         builder: (context, state) => SectionScaffold(

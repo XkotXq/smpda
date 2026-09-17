@@ -295,10 +295,10 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         );
       }
 
-      await itemsApi.upsert(item);
+      final saved = await itemsApi.upsert(item);
       await operationsApi.create([operation]);
 
-      ref.invalidate(smItemsListProvider);
+      ref.read(smItemsListProvider.notifier).upsertLocal(saved);
       state = ReceiveIssueState(mode: state.mode);
       return true;
     } catch (e) {

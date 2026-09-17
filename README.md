@@ -81,11 +81,14 @@ lib/
 
 ### `features/materials/` - przyjęcie/wydanie
 
-`ReceiveIssueScreen` is one operation at a time, not a batch: scan (or
-type) a code, the item's number/name/location and a quantity field
-appear, confirm, and the screen is immediately ready for the next scan.
-No queue/review step - an operator's hands are on the scanner trigger and
-the PDA's own keypad, not building up a list to review later.
+One operation at a time, not a batch: scan (or type) a code, its own full
+screen (`OperationScreen`, pushed via go_router - see
+`materialsSmOperationPath` in `router.dart`) shows which mode this is
+under, then the item's number/name/[available quantity for an issue] and
+a quantity field, confirm, and you're back on the scan screen ready for
+the next one. No queue/review step - an operator's hands are on the
+scanner trigger and the PDA's own keypad, not building up a list to
+review later.
 
 - `receive_issue_models.dart` - `FlowMode` (receive/issue), `IssueKind`
   (unit/aggregate/pending, mirroring wpsApi's own row-kind split), the
@@ -107,17 +110,34 @@ the PDA's own keypad, not building up a list to review later.
   pending issues, drop-from-units-array for a full unit issue, append-
   new-unit or increment pending/total for a receipt - never delete an
   item at zero, since `sm_items` is shared with WPS's own UI), then
-  clears the operation.
-- `materials_providers.dart` - cached `smItemsListProvider`/
-  `smCatalogListProvider` (`FutureProvider`s) the controller resolves
-  scans against, invalidated after a successful submit.
-- `receive_issue_screen.dart` - scan/manual-entry field (reuses
-  `BarcodeScannerService`), the current operation's card (auto-focused
-  quantity field - the system/physical keyboard handles input, no
-  custom on-screen keypad: a `virtual_keypad` package integration was
-  tried and dropped after its keys didn't actually insert characters
-  into `ShadInput` on a real device test), picker `showShadSheet` for
-  the ambiguous-issue case, Anuluj/Zatwierdź buttons.
+  clears the operation and patches `smItemsListProvider`'s cache with the
+  server's own response (`SmItemsListNotifier.upsertLocal` in
+  `materials_providers.dart`) instead of invalidating + refetching - a
+  refetch's request/response round trip left a real window where
+  scanning the very next item (right after confirming the previous one)
+  came back "unknown" because the cache had gone back to `null` while
+  loading.
+- `materials_providers.dart` - `smItemsListProvider` (`AsyncNotifierProvider`,
+  patched locally after every submit, see above) and `smCatalogListProvider`
+  (`FutureProvider`) the controller resolves scans against.
+- `receive_issue_screen.dart` - just the scan/manual-entry field (reuses
+  `BarcodeScannerService`) and an idle message; pushes
+  `materialsSmOperationPath` once a scan resolves. Picker `showShadSheet`
+  for the ambiguous-issue case also pushes it once something's picked.
+- `operation_screen.dart` - the pushed screen itself: mode title, item
+  card, auto-focused quantity field (system/physical keyboard handles
+  input - no custom on-screen keypad: a `virtual_keypad` package
+  integration was tried and dropped after its keys didn't actually
+  insert characters into `ShadInput` on a real device test; turned out
+  unnecessary too, since a focused field already accepts a PDA's
+  physical keys with zero extra code), Anuluj/Zatwierdź buttons.
+  **Pushed via `context.push`/popped via `context.pop` (go_router), never
+  a raw `Navigator.push`/`pop`** - an earlier version pushed it as a bare
+  `PageRouteBuilder` on the ambient `Navigator`, which go_router doesn't
+  track as one of its own pages; popping it back out then desynced
+  go_router's own idea of the current location, and confirming/
+  cancelling an operation would land back on the dashboard instead of
+  the scan screen it was pushed from.
 
 ## Status - what's done
 
