@@ -17,7 +17,7 @@ class SmPdaApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ShadApp(
-      title: 'SmPda',
+      title: 'SM',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

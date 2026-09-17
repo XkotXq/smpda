@@ -71,7 +71,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('SmPda', style: theme.textTheme.h3, textAlign: TextAlign.center),
+                  Text('SM', style: theme.textTheme.h3, textAlign: TextAlign.center),
                   const SizedBox(height: 32),
                   ShadInput(
                     controller: _usernameController,
