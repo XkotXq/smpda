@@ -27,6 +27,20 @@ class BarcodeScannerService {
 
   bool _started = false;
 
+  /// True once [init] has run - screens use this to decide whether to show
+  /// the manual-entry fallback (see [simulateScan]) instead of/alongside
+  /// the "point the PDA and pull the trigger" UI.
+  bool get isHardwareScanner => _started;
+
+  /// Feeds [onScan] exactly like a real decode would - lets every screen
+  /// built on top of this service (receive/issue flows included) be
+  /// developed and tested on a plain PC/emulator, with no Honeywell
+  /// hardware involved at all. Always available, not gated on [init]
+  /// having found real hardware.
+  void simulateScan(String code) {
+    if (code.isNotEmpty) _codeController.add(code);
+  }
+
   Future<bool> init() async {
     final supported = await _scanner.isSupported();
     if (!supported) return false;

@@ -11,6 +11,13 @@ import '../../core/scanner/barcode_scanner_service.dart';
 /// against wpsApi) build on top of this same onScan stream - this is here
 /// so the Honeywell wiring can be smoke-tested on a real device before any
 /// of that exists.
+///
+/// The manual-entry field at the top feeds the exact same stream a real
+/// trigger-pull would (see BarcodeScannerService.simulateScan) - it's
+/// always there, not just as a fallback when no hardware is found, so a
+/// screen/flow built on top of onScan can be developed and clicked through
+/// entirely on a PC, no PDA required, and still behaves identically once
+/// real hardware is involved.
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
 
@@ -20,9 +27,10 @@ class ScanScreen extends ConsumerStatefulWidget {
 
 class _ScanScreenState extends ConsumerState<ScanScreen> {
   final _codes = <String>[];
+  final _manualEntryController = TextEditingController();
   StreamSubscription<String>? _scanSub;
   StreamSubscription<Object>? _errorSub;
-  bool _supported = true;
+  bool _hasHardwareScanner = false;
 
   @override
   void initState() {
@@ -34,7 +42,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     final scanner = ref.read(barcodeScannerServiceProvider);
     final ok = await scanner.init();
     if (!mounted) return;
-    setState(() => _supported = ok);
+    setState(() => _hasHardwareScanner = ok);
     _scanSub = scanner.onScan.listen((code) {
       if (!mounted) return;
       setState(() => _codes.insert(0, code));
@@ -47,40 +55,81 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     });
   }
 
+  void _submitManualEntry() {
+    final code = _manualEntryController.text.trim();
+    if (code.isEmpty) return;
+    ref.read(barcodeScannerServiceProvider).simulateScan(code);
+    _manualEntryController.clear();
+  }
+
   @override
   void dispose() {
     _scanSub?.cancel();
     _errorSub?.cancel();
+    _manualEntryController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!_supported) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24),
-          child: Text(
-            'Ten skaner nie jest wspierany na tym urządzeniu - honeywell_scanner '
-            'zwrócił isSupported() = false (np. zwykły telefon/emulator zamiast PDA).',
-            textAlign: TextAlign.center,
+    final theme = ShadTheme.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!_hasHardwareScanner)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    'Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, '
+                    'żeby zasymulować skan.',
+                    style: theme.textTheme.muted,
+                  ),
+                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: ShadInput(
+                      controller: _manualEntryController,
+                      placeholder: const Text('Wpisz kod i zatwierdź'),
+                      onSubmitted: (_) => _submitManualEntry(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ShadButton(
+                    onPressed: _submitManualEntry,
+                    child: const Text('Symuluj skan'),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
-      );
-    }
-    if (_codes.isEmpty) {
-      return const Center(child: Text('Naciśnij spust skanera, aby zeskanować kod.'));
-    }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _codes.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        return ShadCard(
-          padding: const EdgeInsets.all(12),
-          child: Text(_codes[index], style: ShadTheme.of(context).textTheme.p),
-        );
-      },
+        Expanded(
+          child: _codes.isEmpty
+              ? Center(
+                  child: Text(
+                    _hasHardwareScanner
+                        ? 'Naciśnij spust skanera, aby zeskanować kod.'
+                        : 'Brak zeskanowanych kodów - wpisz jeden powyżej.',
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  itemCount: _codes.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    return ShadCard(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(_codes[index], style: theme.textTheme.p),
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }
