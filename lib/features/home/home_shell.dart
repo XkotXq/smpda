@@ -10,10 +10,10 @@ import '../materials/receive_issue_screen.dart';
 
 /// Materiały SM section - pushed from DashboardScreen's own tile. No
 /// bottom nav here (Settings is reached from the dashboard's own gear
-/// icon, not duplicated inside every section) - the header itself is the
-/// Przyjęcie/Wydanie switch, styled like a browser's tab strip: the
-/// active tab's background merges straight into the content below it,
-/// the inactive one sits recessed in the strip behind it.
+/// icon, not duplicated inside every section). A short title bar (back
+/// button + section name) sits above a compact Przyjęcie/Wydanie switch
+/// - two plain rows kept small on purpose, this screen runs on a small
+/// PDA panel and the scan/queue content below needs the space more.
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
 
@@ -31,22 +31,43 @@ class HomeShell extends ConsumerWidget {
         child: Column(
           children: [
             DecoratedBox(
-              decoration: BoxDecoration(color: theme.colorScheme.muted),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.card,
+                border: Border(bottom: BorderSide(color: theme.colorScheme.border)),
+              ),
+              child: SizedBox(
+                height: 44,
+                child: Row(
+                  children: [
+                    ShadButton.ghost(
+                      size: ShadButtonSize.sm,
+                      onPressed: () => context.canPop() ? context.pop() : null,
+                      child: Icon(LucideIcons.arrowLeft, size: 18, semanticLabel: t.nav.back),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(t.dashboard.materialsSm.title, style: theme.textTheme.h4),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Row(
                 children: [
-                  ShadButton.ghost(
-                    onPressed: () => context.canPop() ? context.pop() : null,
-                    child: Icon(LucideIcons.arrowLeft, semanticLabel: t.nav.back),
+                  Expanded(
+                    child: _ModeButton(
+                      label: t.operations.modeReceive,
+                      active: mode == FlowMode.receive,
+                      onTap: () => controller.setMode(FlowMode.receive),
+                    ),
                   ),
-                  _BrowserTab(
-                    label: t.operations.modeReceive,
-                    active: mode == FlowMode.receive,
-                    onTap: () => controller.setMode(FlowMode.receive),
-                  ),
-                  _BrowserTab(
-                    label: t.operations.modeIssue,
-                    active: mode == FlowMode.issue,
-                    onTap: () => controller.setMode(FlowMode.issue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _ModeButton(
+                      label: t.operations.modeIssue,
+                      active: mode == FlowMode.issue,
+                      onTap: () => controller.setMode(FlowMode.issue),
+                    ),
                   ),
                 ],
               ),
@@ -59,8 +80,8 @@ class HomeShell extends ConsumerWidget {
   }
 }
 
-class _BrowserTab extends StatelessWidget {
-  const _BrowserTab({required this.label, required this.active, required this.onTap});
+class _ModeButton extends StatelessWidget {
+  const _ModeButton({required this.label, required this.active, required this.onTap});
 
   final String label;
   final bool active;
@@ -68,30 +89,12 @@ class _BrowserTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        margin: EdgeInsets.only(top: active ? 0 : 6, right: 2),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: active ? theme.colorScheme.background : const Color(0x00000000),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(10),
-            topRight: Radius.circular(10),
-          ),
-        ),
-        child: Text(
-          label,
-          style: theme.textTheme.p.copyWith(
-            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-            color: active ? theme.colorScheme.foreground : theme.colorScheme.mutedForeground,
-          ),
-        ),
-      ),
+    return ShadButton(
+      size: ShadButtonSize.sm,
+      backgroundColor: active ? null : ShadTheme.of(context).colorScheme.secondary,
+      foregroundColor: active ? null : ShadTheme.of(context).colorScheme.secondaryForeground,
+      onPressed: onTap,
+      child: Text(label),
     );
   }
 }

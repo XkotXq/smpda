@@ -96,7 +96,6 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get modeReceive => 'Receive';
 	@override String get modeIssue => 'Issue';
 	@override String get scanPlaceholder => 'Scan or type a code';
-	@override String get scanHint => 'Pull the scanner trigger or type a code manually.';
 	@override String get queueEmpty => 'The queue is empty - scan a material to add a line.';
 	@override String queueTitle({required Object count}) => 'To confirm (${count})';
 	@override String get unitLabel => 'Unit no.';
@@ -198,7 +197,6 @@ extension on TranslationsEn {
 			'operations.modeReceive' => 'Receive',
 			'operations.modeIssue' => 'Issue',
 			'operations.scanPlaceholder' => 'Scan or type a code',
-			'operations.scanHint' => 'Pull the scanner trigger or type a code manually.',
 			'operations.queueEmpty' => 'The queue is empty - scan a material to add a line.',
 			'operations.queueTitle' => ({required Object count}) => 'To confirm (${count})',
 			'operations.unitLabel' => 'Unit no.',

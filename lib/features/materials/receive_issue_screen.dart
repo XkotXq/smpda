@@ -26,7 +26,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
   final _focusNode = FocusNode();
   StreamSubscription<String>? _scanSub;
   StreamSubscription<Object>? _errorSub;
-  bool _hasHardwareScanner = false;
 
   @override
   void initState() {
@@ -36,9 +35,8 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
 
   Future<void> _wire() async {
     final scanner = ref.read(barcodeScannerServiceProvider);
-    final ok = await scanner.init();
+    await scanner.init();
     if (!mounted) return;
-    setState(() => _hasHardwareScanner = ok);
     _scanSub = scanner.onScan.listen(_handleCode);
     _errorSub = scanner.onError.listen((error) {
       if (!mounted) return;
@@ -180,11 +178,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (!_hasHardwareScanner)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(t.operations.scanHint, style: theme.textTheme.muted),
-                ),
               Row(
                 children: [
                   Expanded(

@@ -131,9 +131,6 @@ class Translations$operations$pl {
 	/// pl: 'Zeskanuj lub wpisz kod'
 	String get scanPlaceholder => 'Zeskanuj lub wpisz kod';
 
-	/// pl: 'Naciśnij spust skanera lub wpisz kod ręcznie.'
-	String get scanHint => 'Naciśnij spust skanera lub wpisz kod ręcznie.';
-
 	/// pl: 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.'
 	String get queueEmpty => 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.';
 
@@ -284,7 +281,6 @@ extension on Translations {
 			'operations.modeReceive' => 'Przyjęcie',
 			'operations.modeIssue' => 'Wydanie',
 			'operations.scanPlaceholder' => 'Zeskanuj lub wpisz kod',
-			'operations.scanHint' => 'Naciśnij spust skanera lub wpisz kod ręcznie.',
 			'operations.queueEmpty' => 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.',
 			'operations.queueTitle' => ({required Object count}) => 'Do zatwierdzenia (${count})',
 			'operations.unitLabel' => 'Nr jednostki',
