@@ -165,70 +165,117 @@ class _OperationFields extends ConsumerWidget {
     if (op is ReceiveOperation) {
       final receiveOp = op as ReceiveOperation;
       fields = Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(t.operations.quantityLabel, style: theme.textTheme.small),
-          const SizedBox(height: 6),
-          ShadInput(
+          _BigQuantityField(
             controller: quantityController,
             focusNode: quantityFocusNode,
-            autofocus: true,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            label: t.operations.quantityLabel,
             onChanged: controller.updateQuantity,
           ),
           if (receiveOp.trackedIndividually) ...[
-            const SizedBox(height: 12),
-            Text(t.operations.unitOptional, style: theme.textTheme.small),
+            const SizedBox(height: 20),
+            Text(t.operations.unitOptional, style: theme.textTheme.small, textAlign: TextAlign.center),
             const SizedBox(height: 6),
-            ShadInput(controller: unitIdController, onChanged: controller.updateUnitId),
+            ShadInput(controller: unitIdController, onChanged: controller.updateUnitId, textAlign: TextAlign.center),
           ],
         ],
       );
     } else {
       final issueOp = op as IssueOperation;
       fields = issueOp.kind == IssueKind.unit
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('${t.operations.unitLabel}: ${issueOp.unitId}', style: theme.textTheme.muted),
-                Text(issueOp.quantity, style: theme.textTheme.h4),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(t.operations.quantityLabel, style: theme.textTheme.small),
-                const SizedBox(height: 6),
-                ShadInput(
-                  controller: quantityController,
-                  focusNode: quantityFocusNode,
-                  autofocus: true,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  onChanged: controller.updateQuantity,
-                ),
-              ],
+          ? _BigQuantityDisplay(value: issueOp.quantity, label: '${t.operations.unitLabel} ${issueOp.unitId}')
+          : _BigQuantityField(
+              controller: quantityController,
+              focusNode: quantityFocusNode,
+              label: t.operations.quantityLabel,
+              onChanged: controller.updateQuantity,
             );
     }
 
-    return ShadCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(op.itemNo, style: theme.textTheme.h3),
-          Text(op.itemName, style: theme.textTheme.muted),
-          if (op.locationCode.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text('${t.operations.location}: ${op.locationCode}', style: theme.textTheme.muted),
-          ],
-          if (op case IssueOperation(kind: != IssueKind.unit, :final available)) ...[
-            const SizedBox(height: 4),
-            Text(t.operations.available(value: available), style: theme.textTheme.muted),
-          ],
-          const SizedBox(height: 16),
-          fields,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(op.itemNo, style: theme.textTheme.h3),
+        Text(op.itemName, style: theme.textTheme.muted),
+        if (op.locationCode.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text('${t.operations.location}: ${op.locationCode}', style: theme.textTheme.muted),
         ],
-      ),
+        if (op case IssueOperation(kind: != IssueKind.unit, :final available)) ...[
+          const SizedBox(height: 4),
+          Text(t.operations.available(value: available), style: theme.textTheme.muted),
+        ],
+        const SizedBox(height: 32),
+        fields,
+      ],
+    );
+  }
+}
+
+/// The quantity to type - a big centered number with only an underline
+/// (no box/border around it), the way a PDA screen has room to make the one
+/// thing an operator actually needs to focus on the most prominent thing on
+/// screen, and a small caption naming it underneath.
+class _BigQuantityField extends StatelessWidget {
+  const _BigQuantityField({
+    required this.controller,
+    required this.focusNode,
+    required this.label,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String label;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    return Column(
+      children: [
+        ShadInput(
+          controller: controller,
+          focusNode: focusNode,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          onChanged: onChanged,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.h1.copyWith(fontWeight: FontWeight.w700),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+        ),
+        const SizedBox(height: 6),
+        Text(label, style: theme.textTheme.small, textAlign: TextAlign.center),
+      ],
+    );
+  }
+}
+
+/// Same look as [_BigQuantityField] for the one case a quantity isn't
+/// editable (a unit is always issued in full) - a fixed number, not a field.
+class _BigQuantityDisplay extends StatelessWidget {
+  const _BigQuantityDisplay({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            value,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.h1.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(label, style: theme.textTheme.small, textAlign: TextAlign.center),
+      ],
     );
   }
 }
