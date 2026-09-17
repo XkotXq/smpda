@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/scanner/barcode_scanner_service.dart';
+import '../../l10n/strings.dart';
 
 /// First cut of the scan screen: claims the hardware scanner, lists every
 /// code read this session (newest first). Real screens (przyjęcie/wydanie
@@ -73,6 +74,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final t = ref.watch(appStringsProvider);
     return Column(
       children: [
         Padding(
@@ -83,25 +85,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               if (!_hasHardwareScanner)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(
-                    'Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, '
-                    'żeby zasymulować skan.',
-                    style: theme.textTheme.muted,
-                  ),
+                  child: Text(t('scan.noHardware'), style: theme.textTheme.muted),
                 ),
               Row(
                 children: [
                   Expanded(
                     child: ShadInput(
                       controller: _manualEntryController,
-                      placeholder: const Text('Wpisz kod i zatwierdź'),
+                      placeholder: Text(t('scan.manualPlaceholder')),
                       onSubmitted: (_) => _submitManualEntry(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   ShadButton(
                     onPressed: _submitManualEntry,
-                    child: const Text('Symuluj skan'),
+                    child: Text(t('scan.simulate')),
                   ),
                 ],
               ),
@@ -112,9 +110,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           child: _codes.isEmpty
               ? Center(
                   child: Text(
-                    _hasHardwareScanner
-                        ? 'Naciśnij spust skanera, aby zeskanować kod.'
-                        : 'Brak zeskanowanych kodów - wpisz jeden powyżej.',
+                    _hasHardwareScanner ? t('scan.waitingHardware') : t('scan.waitingManual'),
                   ),
                 )
               : ListView.separated(

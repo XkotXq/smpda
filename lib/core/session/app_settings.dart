@@ -1,8 +1,13 @@
+import 'package:flutter/material.dart' show ThemeMode;
+
 /// Everything the PDA needs to talk to wpsApi and log operations under a
 /// name - same pieces of config wps itself needs (API_TOKEN, API_BASE_URL)
 /// plus the CIP session (see AuthApi) that identifies who's holding the
-/// device right now. Kept together (not several separate providers) since
-/// they're always read/edited as a unit.
+/// device right now, and this device's own display prefs (theme/language -
+/// per-device, not per-operator, since the PDA itself is what's shared
+/// across a shift, same reasoning as apiBaseUrl/apiToken). Kept together
+/// (not several separate providers) since they're always read/edited as a
+/// unit.
 class AppSettings {
   const AppSettings({
     this.apiBaseUrl = '',
@@ -10,6 +15,8 @@ class AppSettings {
     this.operatorName = '',
     this.authToken = '',
     this.authRefreshToken = '',
+    this.themeMode = ThemeMode.system,
+    this.localeCode = 'pl',
   });
 
   /// e.g. http://192.168.1.50:4000 - the PDA is on the same warehouse
@@ -34,6 +41,13 @@ class AppSettings {
   final String authToken;
   final String authRefreshToken;
 
+  /// light/dark/system - see SettingsScreen's theme selector.
+  final ThemeMode themeMode;
+
+  /// 'pl' | 'en' - see lib/l10n/strings.dart's SUPPORTED_LOCALES and
+  /// SettingsScreen's language selector.
+  final String localeCode;
+
   bool get isConfigured => apiBaseUrl.isNotEmpty && apiToken.isNotEmpty;
   bool get isLoggedIn => authToken.isNotEmpty;
 
@@ -43,6 +57,8 @@ class AppSettings {
     String? operatorName,
     String? authToken,
     String? authRefreshToken,
+    ThemeMode? themeMode,
+    String? localeCode,
   }) {
     return AppSettings(
       apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
@@ -50,10 +66,13 @@ class AppSettings {
       operatorName: operatorName ?? this.operatorName,
       authToken: authToken ?? this.authToken,
       authRefreshToken: authRefreshToken ?? this.authRefreshToken,
+      themeMode: themeMode ?? this.themeMode,
+      localeCode: localeCode ?? this.localeCode,
     );
   }
 
-  /// Drops the CIP session only - apiBaseUrl/apiToken (this device's own
-  /// wpsApi config) stay put, since those aren't tied to who's logged in.
+  /// Drops the CIP session only - apiBaseUrl/apiToken/themeMode/localeCode
+  /// (this device's own settings) stay put, since those aren't tied to who's
+  /// logged in.
   AppSettings loggedOut() => copyWith(authToken: '', authRefreshToken: '', operatorName: '');
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show ThemeMode;
+import 'package:flutter/material.dart' show Locale, ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -9,19 +9,23 @@ import 'features/home/home_shell.dart';
 import 'theme/app_theme.dart';
 
 /// Root widget - theme/darkTheme mirror WPS's own light/dark tokens (see
-/// theme/app_theme.dart); themeMode follows the system setting, same
-/// default WPS's own ThemeProvider uses.
-class SmPdaApp extends StatelessWidget {
+/// theme/app_theme.dart); themeMode and locale both come from
+/// AppSettings (SettingsScreen's own selectors), watched here so a change
+/// takes effect immediately app-wide.
+class SmPdaApp extends ConsumerWidget {
   const SmPdaApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(appSettingsProvider).value;
     return ShadApp(
       title: 'SM',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: settings?.themeMode ?? ThemeMode.system,
+      locale: Locale(settings?.localeCode ?? 'pl'),
+      supportedLocales: const [Locale('pl'), Locale('en')],
       home: const AuthGate(),
     );
   }

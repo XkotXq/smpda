@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/api/auth_api.dart';
 import '../../core/session/session_providers.dart';
+import '../../l10n/strings.dart';
 import '../settings/settings_screen.dart';
 
 /// First screen the app shows (see AuthGate in app.dart) - just the CIP
@@ -60,6 +61,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final t = ref.watch(appStringsProvider);
     return Stack(
       children: [
         Center(
@@ -75,14 +77,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 32),
                   ShadInput(
                     controller: _usernameController,
-                    placeholder: const Text('Login'),
+                    placeholder: Text(t('login.username')),
                     autofocus: true,
                     textInputAction: TextInputAction.next,
                   ),
                   const SizedBox(height: 12),
                   ShadInput(
                     controller: _passwordController,
-                    placeholder: const Text('Hasło'),
+                    placeholder: Text(t('login.password')),
                     obscureText: true,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _submit(),
@@ -98,7 +100,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 20),
                   ShadButton(
                     onPressed: _submitting ? null : _submit,
-                    child: Text(_submitting ? 'Logowanie...' : 'Zaloguj'),
+                    child: Text(_submitting ? t('login.submitting') : t('login.submit')),
                   ),
                 ],
               ),

@@ -1,16 +1,18 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/session/session_providers.dart';
+import '../../l10n/strings.dart';
 
-/// Where the PDA points at wpsApi (apiBaseUrl/apiToken) - see AppSettings.
-/// Nothing here is a secret worth locking behind auth of its own; it's the
-/// same shared bearer token every other client (wps, stock) already uses,
-/// just typed in once per device instead of baked into a build. Who's
-/// logged in (operatorName) isn't editable here anymore - that's set by
-/// LoginScreen from the CIP session - this screen just shows it, with a
-/// way to log out.
+/// Where the PDA points at wpsApi (apiBaseUrl/apiToken) plus this device's
+/// own display prefs (language/theme) - see AppSettings. Nothing here is a
+/// secret worth locking behind auth of its own; the bearer token is the
+/// same one every other client (wps, stock) already uses, just typed in
+/// once per device instead of baked into a build. Who's logged in
+/// (operatorName) isn't editable here - that's set by LoginScreen from the
+/// CIP session - this screen just shows it, with a way to log out.
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -33,6 +35,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
+    final t = ref.watch(appStringsProvider);
     final settingsAsync = ref.watch(appSettingsProvider);
 
     return settingsAsync.when(
@@ -54,19 +57,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Zalogowano jako: ${settings.operatorName}',
+                        '${t('settings.loggedInAs')}: ${settings.operatorName}',
                         style: theme.textTheme.small,
                       ),
                     ),
                     ShadButton.outline(
                       onPressed: () => ref.read(appSettingsProvider.notifier).logout(),
-                      child: const Text('Wyloguj'),
+                      child: Text(t('settings.logout')),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
               ],
-              Text('Adres wpsApi', style: theme.textTheme.small),
+              Text(t('settings.language'), style: theme.textTheme.small),
+              const SizedBox(height: 6),
+              ShadSelect<String>(
+                initialValue: settings.localeCode,
+                placeholder: Text(t('settings.language')),
+                options: const [
+                  ShadOption(value: 'pl', child: Text('Polski')),
+                  ShadOption(value: 'en', child: Text('English')),
+                ],
+                selectedOptionBuilder: (context, value) =>
+                    Text(value == 'pl' ? 'Polski' : 'English'),
+                onChanged: (value) {
+                  if (value != null) ref.read(appSettingsProvider.notifier).setLocale(value);
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(t('settings.theme'), style: theme.textTheme.small),
+              const SizedBox(height: 6),
+              ShadSelect<ThemeMode>(
+                initialValue: settings.themeMode,
+                placeholder: Text(t('settings.theme')),
+                options: [
+                  ShadOption(value: ThemeMode.system, child: Text(t('settings.theme.system'))),
+                  ShadOption(value: ThemeMode.light, child: Text(t('settings.theme.light'))),
+                  ShadOption(value: ThemeMode.dark, child: Text(t('settings.theme.dark'))),
+                ],
+                selectedOptionBuilder: (context, value) => Text(switch (value) {
+                  ThemeMode.system => t('settings.theme.system'),
+                  ThemeMode.light => t('settings.theme.light'),
+                  ThemeMode.dark => t('settings.theme.dark'),
+                }),
+                onChanged: (value) {
+                  if (value != null) ref.read(appSettingsProvider.notifier).setThemeMode(value);
+                },
+              ),
+              const SizedBox(height: 16),
+              Text(t('settings.apiUrl'), style: theme.textTheme.small),
               const SizedBox(height: 6),
               ShadInput(
                 controller: _baseUrlController,
@@ -74,7 +113,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 keyboardType: TextInputType.url,
               ),
               const SizedBox(height: 16),
-              Text('Token API', style: theme.textTheme.small),
+              Text(t('settings.apiToken'), style: theme.textTheme.small),
               const SizedBox(height: 6),
               ShadInput(controller: _tokenController, obscureText: true),
               const SizedBox(height: 24),
@@ -85,7 +124,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         apiToken: _tokenController.text.trim(),
                       );
                 },
-                child: const Text('Zapisz'),
+                child: Text(t('settings.save')),
               ),
             ],
           ),
