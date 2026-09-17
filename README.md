@@ -15,7 +15,11 @@ only the user-visible name changed.
   `lib/theme/` mirrors WPS's own `app/globals.css` tokens (same navy
   accent, same neutral surfaces, same base radius) so this app reads as
   the same product on a handheld. Icons are `shadcn_ui`'s bundled
-  `LucideIcons` - same icon set WPS itself uses (lucide-react).
+  `LucideIcons` - same icon set WPS itself uses (lucide-react). Font is
+  Satoshi (`assets/fonts/`) - the same family WPS loads via
+  `next/font/local` in `app/layout.js`, re-exported here as `.ttf`
+  (converted from WPS's own `.woff2` files - Flutter's font pipeline
+  doesn't accept woff2).
 - **Scanner**: [honeywell_scanner](https://pub.dev/packages/honeywell_scanner)
   - wraps the physical trigger + hardware decoder on Honeywell devices
   (`lib/core/scanner/barcode_scanner_service.dart`). Also exposes

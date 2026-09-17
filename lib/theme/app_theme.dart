@@ -10,9 +10,17 @@ import 'app_colors.dart';
 class AppTheme {
   AppTheme._();
 
+  // Satoshi has 4/9 weights WPS's Tailwind setup could theoretically ask
+  // for (400/500/700/900) - text styles that want something else (e.g.
+  // w600 for a heading) fall back to the nearest weight Flutter finds
+  // registered for the family rather than erroring, same graceful
+  // degradation a browser does for a missing font-weight.
+  static final _textTheme = ShadTextTheme(family: 'Satoshi');
+
   static final light = ShadThemeData(
     brightness: Brightness.light,
     radius: const BorderRadius.all(Radius.circular(10)),
+    textTheme: _textTheme,
     colorScheme: const ShadColorScheme(
       background: Color(0xFFFFFFFF),
       foreground: AppColors.neutral950,
@@ -40,6 +48,7 @@ class AppTheme {
   static final dark = ShadThemeData(
     brightness: Brightness.dark,
     radius: const BorderRadius.all(Radius.circular(10)),
+    textTheme: _textTheme,
     colorScheme: const ShadColorScheme(
       background: AppColors.neutral950,
       foreground: AppColors.neutral50,

@@ -56,3 +56,20 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Same font WPS itself uses (app/layout.js's `localFont` - Satoshi, not a
+  # Google Font). WPS ships it as .woff2 (web-only); Flutter's font asset
+  # pipeline needs .ttf/.otf, so these are the same files re-exported as
+  # .ttf (see the "converted from WPS's own woff2" note in each file's own
+  # git history - no visual/hinting difference, just container format).
+  fonts:
+    - family: Satoshi
+      fonts:
+        - asset: assets/fonts/Satoshi-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Satoshi-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Satoshi-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Satoshi-Black.ttf
+          weight: 900
