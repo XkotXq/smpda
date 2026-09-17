@@ -22,12 +22,15 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
     );
   }
 
-  Future<void> update({
+  // Named `save`, not `update` - AsyncNotifier already declares its own
+  // `update(cb)` (recompute state from a callback over the current value),
+  // so reusing that name here would clash with the inherited signature.
+  Future<void> save({
     String? apiBaseUrl,
     String? apiToken,
     String? operatorName,
   }) async {
-    final current = state.valueOrNull ?? const AppSettings();
+    final current = state.value ?? const AppSettings();
     final next = current.copyWith(
       apiBaseUrl: apiBaseUrl,
       apiToken: apiToken,

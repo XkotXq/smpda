@@ -21,7 +21,7 @@ final dioProvider = Provider<Dio>((ref) {
   dio.interceptors.add(
     InterceptorsWrapper(
       onRequest: (options, handler) {
-        final settings = ref.read(appSettingsProvider).valueOrNull;
+        final settings = ref.read(appSettingsProvider).value;
         options.baseUrl = '${settings?.apiBaseUrl ?? ''}/api';
         final token = settings?.apiToken ?? '';
         if (token.isNotEmpty) {

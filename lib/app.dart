@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 

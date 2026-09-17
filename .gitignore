@@ -41,6 +41,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Gradle's own build output (APKs land in the top-level /build/ above, but
+# Gradle still writes its own reports/caches straight into android/build/).
+/android/build/
+/android/app/build/
+/android/honeywell/build/
+
 # Local env / device-specific config - never commit the wpsApi token or a
 # real warehouse server URL (see lib/core/session for where these live at
 # runtime instead - plain SharedPreferences on-device, not this repo).

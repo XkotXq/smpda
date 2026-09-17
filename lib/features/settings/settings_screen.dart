@@ -67,7 +67,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ShadButton(
                 child: const Text('Zapisz'),
                 onPressed: () {
-                  ref.read(appSettingsProvider.notifier).update(
+                  ref.read(appSettingsProvider.notifier).save(
                         apiBaseUrl: _baseUrlController.text.trim(),
                         apiToken: _tokenController.text.trim(),
                         operatorName: _operatorController.text.trim(),
