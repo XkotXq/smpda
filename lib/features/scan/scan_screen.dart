@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/scanner/barcode_scanner_service.dart';
-import '../../l10n/strings.dart';
+import '../../i18n/gen/strings.g.dart';
 
 /// First cut of the scan screen: claims the hardware scanner, lists every
 /// code read this session (newest first). Real screens (przyjęcie/wydanie
@@ -74,7 +74,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final t = ref.watch(appStringsProvider);
+    final t = context.t;
     return Column(
       children: [
         Padding(
@@ -85,21 +85,21 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               if (!_hasHardwareScanner)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(t('scan.noHardware'), style: theme.textTheme.muted),
+                  child: Text(t.scan.noHardware, style: theme.textTheme.muted),
                 ),
               Row(
                 children: [
                   Expanded(
                     child: ShadInput(
                       controller: _manualEntryController,
-                      placeholder: Text(t('scan.manualPlaceholder')),
+                      placeholder: Text(t.scan.manualPlaceholder),
                       onSubmitted: (_) => _submitManualEntry(),
                     ),
                   ),
                   const SizedBox(width: 8),
                   ShadButton(
                     onPressed: _submitManualEntry,
-                    child: Text(t('scan.simulate')),
+                    child: Text(t.scan.simulate),
                   ),
                 ],
               ),
@@ -110,7 +110,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
           child: _codes.isEmpty
               ? Center(
                   child: Text(
-                    _hasHardwareScanner ? t('scan.waitingHardware') : t('scan.waitingManual'),
+                    _hasHardwareScanner ? t.scan.waitingHardware : t.scan.waitingManual,
                   ),
                 )
               : ListView.separated(

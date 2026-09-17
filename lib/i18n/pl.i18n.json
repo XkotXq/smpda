@@ -1,0 +1,33 @@
+{
+  "login": {
+    "username": "Login",
+    "password": "Hasło",
+    "submit": "Zaloguj",
+    "submitting": "Logowanie..."
+  },
+  "settings": {
+    "loggedInAs": "Zalogowano jako",
+    "logout": "Wyloguj",
+    "apiUrl": "Adres wpsApi",
+    "apiToken": "Token API",
+    "save": "Zapisz",
+    "language": "Język",
+    "theme": {
+      "label": "Motyw",
+      "system": "Systemowy",
+      "light": "Jasny",
+      "dark": "Ciemny"
+    }
+  },
+  "scan": {
+    "noHardware": "Brak fizycznego skanera na tym urządzeniu - wpisz kod ręcznie, żeby zasymulować skan.",
+    "manualPlaceholder": "Wpisz kod i zatwierdź",
+    "simulate": "Symuluj skan",
+    "waitingHardware": "Naciśnij spust skanera, aby zeskanować kod.",
+    "waitingManual": "Brak zeskanowanych kodów - wpisz jeden powyżej."
+  },
+  "nav": {
+    "scan": "Skanuj",
+    "settings": "Ustawienia"
+  }
+}

@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
-import '../../l10n/strings.dart';
+import '../../i18n/gen/strings.g.dart';
 import '../scan/scan_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -25,10 +25,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    final t = ref.watch(appStringsProvider);
+    final t = context.t;
     final destinations = [
-      (icon: LucideIcons.scanLine, label: t('nav.scan')),
-      (icon: LucideIcons.settings, label: t('nav.settings')),
+      (icon: LucideIcons.scanLine, label: t.nav.scan),
+      (icon: LucideIcons.settings, label: t.nav.settings),
     ];
     return ColoredBox(
       color: theme.colorScheme.background,

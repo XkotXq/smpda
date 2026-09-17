@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Locale, ThemeMode;
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -6,6 +6,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'core/session/session_providers.dart';
 import 'features/auth/login_screen.dart';
 import 'features/home/home_shell.dart';
+import 'i18n/gen/strings.g.dart';
 import 'theme/app_theme.dart';
 
 /// Root widget - theme/darkTheme mirror WPS's own light/dark tokens (see
@@ -18,14 +19,22 @@ class SmPdaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(appSettingsProvider).value;
+    final locale = settings?.localeCode == 'en' ? AppLocale.en : AppLocale.pl;
+    // Bridges AppSettings.localeCode (persisted, riverpod-managed) into
+    // slang's own LocaleSettings singleton - a plain equality check keeps
+    // this idempotent, since build() re-running on every unrelated
+    // settings change would otherwise call setLocale needlessly.
+    if (LocaleSettings.currentLocale != locale) {
+      LocaleSettings.setLocale(locale);
+    }
     return ShadApp(
       title: 'SM',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: settings?.themeMode ?? ThemeMode.system,
-      locale: Locale(settings?.localeCode ?? 'pl'),
-      supportedLocales: const [Locale('pl'), Locale('en')],
+      locale: locale.flutterLocale,
+      supportedLocales: AppLocale.values.map((l) => l.flutterLocale),
       home: const AuthGate(),
     );
   }

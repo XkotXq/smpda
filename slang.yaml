@@ -1,0 +1,8 @@
+# slang codegen config (dart run slang) - see lib/i18n/*.i18n.json for the
+# actual translations. Generated code lands in lib/i18n/gen/, imported by
+# app.dart/TranslationProvider. base_locale: pl since Polish is this app's
+# primary language (the company's own), not a default left over from the
+# package.
+base_locale: pl
+input_directory: lib/i18n
+output_directory: lib/i18n/gen

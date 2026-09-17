@@ -39,10 +39,20 @@ dependencies:
   # enough, no secure storage needed).
   shared_preferences: ^2.5.3
 
+  # PL/EN translations for this app's own UI text (see lib/i18n/) - not a
+  # new dependency in practice, shadcn_ui already pulls these two in
+  # transitively for its own component text (GlobalShadLocalizations);
+  # pinned here to the versions already resolved so `dart run slang`'s
+  # generated code can be imported directly.
+  slang: 4.19.2
+  slang_flutter: 4.19.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  build_runner: ^2.16.1
+  slang_build_runner: ^4.19.0
 
 flutter:
   uses-material-design: true

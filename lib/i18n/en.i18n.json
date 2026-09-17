@@ -1,0 +1,33 @@
+{
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in..."
+  },
+  "settings": {
+    "loggedInAs": "Signed in as",
+    "logout": "Sign out",
+    "apiUrl": "wpsApi address",
+    "apiToken": "API token",
+    "save": "Save",
+    "language": "Language",
+    "theme": {
+      "label": "Theme",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    }
+  },
+  "scan": {
+    "noHardware": "No physical scanner on this device - type a code manually to simulate a scan.",
+    "manualPlaceholder": "Type a code and submit",
+    "simulate": "Simulate scan",
+    "waitingHardware": "Pull the scanner trigger to scan a code.",
+    "waitingManual": "No scanned codes yet - type one above."
+  },
+  "nav": {
+    "scan": "Scan",
+    "settings": "Settings"
+  }
+}
