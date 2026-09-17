@@ -4,15 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'core/session/session_providers.dart';
-import 'features/auth/login_screen.dart';
-import 'features/dashboard/dashboard_screen.dart';
 import 'i18n/gen/strings.g.dart';
+import 'router.dart';
 import 'theme/app_theme.dart';
 
 /// Root widget - theme/darkTheme mirror WPS's own light/dark tokens (see
 /// theme/app_theme.dart); themeMode and locale both come from
 /// AppSettings (SettingsScreen's own selectors), watched here so a change
-/// takes effect immediately app-wide.
+/// takes effect immediately app-wide. Navigation goes through GoRouter
+/// (see router.dart) - its own `redirect` handles the login/dashboard
+/// switch that used to live here as AuthGate.
 class SmPdaApp extends ConsumerWidget {
   const SmPdaApp({super.key});
 
@@ -27,7 +28,7 @@ class SmPdaApp extends ConsumerWidget {
     if (LocaleSettings.currentLocale != locale) {
       LocaleSettings.setLocale(locale);
     }
-    return ShadApp(
+    return ShadApp.router(
       title: 'SM',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
@@ -35,25 +36,7 @@ class SmPdaApp extends ConsumerWidget {
       themeMode: settings?.themeMode ?? ThemeMode.system,
       locale: locale.flutterLocale,
       supportedLocales: AppLocale.values.map((l) => l.flutterLocale),
-      home: const AuthGate(),
-    );
-  }
-}
-
-/// Shows LoginScreen until appSettingsProvider reports a CIP session
-/// (AppSettings.isLoggedIn), then DashboardScreen (the section-picker
-/// tiles) - the switch is reactive, so LoginScreen's own setLoggedIn call
-/// is enough to move past this without any explicit navigation.
-class AuthGate extends ConsumerWidget {
-  const AuthGate({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settingsAsync = ref.watch(appSettingsProvider);
-    return settingsAsync.when(
-      loading: () => const Center(child: ShadProgress()),
-      error: (error, _) => Center(child: Text('$error')),
-      data: (settings) => settings.isLoggedIn ? const DashboardScreen() : const LoginScreen(),
+      routerConfig: ref.watch(routerProvider),
     );
   }
 }

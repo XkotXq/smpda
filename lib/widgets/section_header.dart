@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../i18n/gen/strings.g.dart';
@@ -30,7 +31,7 @@ class SectionHeader extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             children: [
               ShadButton.ghost(
-                onPressed: () => Navigator.of(context).maybePop(),
+                onPressed: () => context.canPop() ? context.pop() : null,
                 child: Icon(LucideIcons.arrowLeft, semanticLabel: context.t.nav.back),
               ),
               const SizedBox(width: 4),

@@ -47,6 +47,12 @@ dependencies:
   slang: 4.19.2
   slang_flutter: 4.19.0
 
+  # Routing (lib/router.dart) - replaces ad-hoc Navigator.push(
+  # MaterialPageRoute(...)) calls with named routes + a single redirect
+  # rule gating everything but /login on AppSettings.isLoggedIn, instead
+  # of that check living in a widget (the old AuthGate).
+  go_router: ^18.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

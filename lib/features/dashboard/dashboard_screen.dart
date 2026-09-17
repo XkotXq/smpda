@@ -1,17 +1,16 @@
-import 'package:flutter/material.dart' show InkWell, MaterialPageRoute;
+import 'package:flutter/material.dart' show InkWell;
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../i18n/gen/strings.g.dart';
-import '../../widgets/section_scaffold.dart';
-import '../frp/frp_screen.dart';
-import '../home/home_shell.dart';
-import '../settings/settings_screen.dart';
+import '../../router.dart';
 
-/// First screen after login (see AuthGate in app.dart) - a tile picker for
-/// this app's sections. Only two tiles exist right now (Materiały SM,
-/// FRP); add more here as sections get built rather than growing
-/// HomeShell's own bottom nav indefinitely.
+/// First screen after login (GoRouter's own `redirect`, see router.dart,
+/// sends here once AppSettings.isLoggedIn) - a tile picker for this app's
+/// sections. Only two tiles exist right now (Materiały SM, FRP); add more
+/// here as sections get built rather than growing HomeShell's own bottom
+/// nav indefinitely.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -24,19 +23,13 @@ class DashboardScreen extends StatelessWidget {
         icon: LucideIcons.arrowLeftRight,
         title: t.dashboard.materialsSm.title,
         subtitle: t.dashboard.materialsSm.subtitle,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const HomeShell()),
-        ),
+        onTap: () => context.push(materialsSmPath),
       ),
       (
         icon: LucideIcons.layers,
         title: t.dashboard.frp.title,
         subtitle: t.dashboard.frp.subtitle,
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => SectionScaffold(title: t.dashboard.frp.title, body: const FrpScreen()),
-          ),
-        ),
+        onTap: () => context.push(frpPath),
       ),
     ];
 
@@ -51,9 +44,7 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   Expanded(child: Text('SM', style: theme.textTheme.h3)),
                   ShadButton.ghost(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    ),
+                    onPressed: () => context.push(settingsPath),
                     child: const Icon(LucideIcons.settings),
                   ),
                 ],

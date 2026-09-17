@@ -28,8 +28,15 @@ only the user-visible name changed.
   always visible (not just a no-hardware fallback).
 - **Auth**: CIP login (username/password) via wpsApi's existing
   `POST /api/auth/login` proxy (`lib/core/api/auth_api.dart`) - the same
-  OAuth2 CIP session wps/stock use, not a separate scheme. `AuthGate` in
-  `app.dart` shows `LoginScreen` until `AppSettings.isLoggedIn`.
+  OAuth2 CIP session wps/stock use, not a separate scheme.
+- **Routing**: [go_router](https://pub.dev/packages/go_router)
+  (`lib/router.dart`) - named routes (`loginPath`/`dashboardPath`/
+  `materialsSmPath`/`frpPath`/`settingsPath` constants) instead of ad-hoc
+  `Navigator.push(MaterialPageRoute(...))`. A single `redirect` rule
+  gates every route but `/login` on `AppSettings.isLoggedIn` (replaces
+  the old widget-level `AuthGate`) - `refreshListenable` is a small
+  `ChangeNotifier` that listens to `appSettingsProvider` via `ref.listen`
+  so login/logout re-runs the redirect immediately.
 - **i18n**: [slang](https://pub.dev/packages/slang) (+ `slang_flutter`) -
   translations live in `lib/i18n/*.i18n.json`, generated code in
   `lib/i18n/gen/` (committed, so a fresh clone doesn't need to run
@@ -53,16 +60,20 @@ only the user-visible name changed.
 ```
 lib/
   main.dart                 entry point (TranslationProvider + ProviderScope + SmPdaApp)
-  app.dart                  root ShadApp (theme/darkTheme/themeMode/locale) + AuthGate
+  app.dart                  root ShadApp.router (theme/darkTheme/themeMode/locale)
+  router.dart                GoRouter - routes + the login/dashboard redirect rule
   theme/                    colors + ShadThemeData matching WPS
   i18n/                     *.i18n.json (source) + gen/ (generated, committed)
+  widgets/                  SectionHeader/SectionScaffold - shared back-button header for pushed sections
   core/
     api/                    Dio client + auth/sm-items/sm-operations/sm-catalog calls
     scanner/                Honeywell scanner wrapper (+ simulateScan for dev/testing)
     session/                persisted API URL/token, CIP session, theme, locale
   features/
     auth/                   LoginScreen (login/password only)
-    home/                   HomeShell (bottom-bar screen switcher - placeholder nav)
+    dashboard/              DashboardScreen - tile picker (Materiały SM, FRP) shown after login
+    frp/                    FrpScreen - placeholder, not built yet
+    home/                   HomeShell - Materiały SM section (bottom-bar: Scan/Settings)
     scan/                   smoke-test screen: claims the scanner, lists scans
     settings/               API URL/token, language, theme, logout
 ```

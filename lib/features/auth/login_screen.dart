@@ -1,19 +1,22 @@
-import 'package:flutter/material.dart' show MaterialPageRoute, TextInputAction;
+import 'package:flutter/material.dart' show TextInputAction;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/api/auth_api.dart';
 import '../../core/session/session_providers.dart';
 import '../../i18n/gen/strings.g.dart';
-import '../settings/settings_screen.dart';
+import '../../router.dart';
 
-/// First screen the app shows (see AuthGate in app.dart) - just the CIP
-/// login/password wps and stock already use, proxied through wpsApi's
-/// POST /api/auth/login (see AuthApi). Nothing else on this screen by
-/// design; the gear icon in the corner is the only way to reach the
-/// apiBaseUrl/apiToken settings a fresh install needs before this call
-/// can even reach a server.
+/// First screen the app shows - GoRouter's own `redirect` (router.dart)
+/// sends here whenever AppSettings.isLoggedIn is false, and away from
+/// here once it's true, so nothing on this screen needs to navigate on
+/// login success itself. Just the CIP login/password wps and stock
+/// already use, proxied through wpsApi's POST /api/auth/login (see
+/// AuthApi) - nothing else on this screen by design; the gear icon in the
+/// corner is the only way to reach the apiBaseUrl/apiToken settings a
+/// fresh install needs before this call can even reach a server.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -111,9 +114,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           top: 8,
           right: 8,
           child: ShadButton.ghost(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+            onPressed: () => context.push(settingsPath),
             child: const Icon(LucideIcons.settings),
           ),
         ),
