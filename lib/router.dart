@@ -46,7 +46,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final loggedIn = ref.read(appSettingsProvider).value?.isLoggedIn ?? false;
       final onLogin = state.matchedLocation == loginPath;
-      if (!loggedIn) return onLogin ? null : loginPath;
+      // Settings has to be reachable while logged out too - it's where the
+      // API URL/token get configured in the first place, and both
+      // LoginScreen and DashboardScreen push to it via the same gear icon.
+      final onSettings = state.matchedLocation == settingsPath;
+      if (!loggedIn) return (onLogin || onSettings) ? null : loginPath;
       if (onLogin) return dashboardPath;
       return null;
     },
