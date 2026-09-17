@@ -65,7 +65,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           body: const FrpScreen(),
         ),
       ),
-      GoRoute(path: settingsPath, builder: (context, state) => const SettingsScreen()),
+      GoRoute(
+        path: settingsPath,
+        builder: (context, state) => SectionScaffold(
+          title: context.t.settings.title,
+          body: const SettingsScreen(),
+        ),
+      ),
     ],
   );
 });

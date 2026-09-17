@@ -6,6 +6,7 @@
     "submitting": "Signing in..."
   },
   "settings": {
+    "title": "Settings",
     "loggedInAs": "Signed in as",
     "logout": "Sign out",
     "apiUrl": "wpsApi address",
@@ -20,8 +21,6 @@
     }
   },
   "nav": {
-    "operations": "Operations",
-    "settings": "Settings",
     "back": "Back"
   },
   "operations": {

@@ -177,30 +177,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: ShadButton(
-                  backgroundColor: state.mode == FlowMode.receive ? null : theme.colorScheme.secondary,
-                  foregroundColor: state.mode == FlowMode.receive ? null : theme.colorScheme.secondaryForeground,
-                  onPressed: () => ref.read(receiveIssueControllerProvider.notifier).setMode(FlowMode.receive),
-                  child: Text(t.operations.modeReceive),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: ShadButton(
-                  backgroundColor: state.mode == FlowMode.issue ? null : theme.colorScheme.secondary,
-                  foregroundColor: state.mode == FlowMode.issue ? null : theme.colorScheme.secondaryForeground,
-                  onPressed: () => ref.read(receiveIssueControllerProvider.notifier).setMode(FlowMode.issue),
-                  child: Text(t.operations.modeIssue),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

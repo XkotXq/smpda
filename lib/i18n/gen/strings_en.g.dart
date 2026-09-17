@@ -66,6 +66,7 @@ class _Translations$settings$en implements Translations$settings$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
+	@override String get title => 'Settings';
 	@override String get loggedInAs => 'Signed in as';
 	@override String get logout => 'Sign out';
 	@override String get apiUrl => 'wpsApi address';
@@ -82,8 +83,6 @@ class _Translations$nav$en implements Translations$nav$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get operations => 'Operations';
-	@override String get settings => 'Settings';
 	@override String get back => 'Back';
 }
 
@@ -184,6 +183,7 @@ extension on TranslationsEn {
 			'login.password' => 'Password',
 			'login.submit' => 'Sign in',
 			'login.submitting' => 'Signing in...',
+			'settings.title' => 'Settings',
 			'settings.loggedInAs' => 'Signed in as',
 			'settings.logout' => 'Sign out',
 			'settings.apiUrl' => 'wpsApi address',
@@ -194,8 +194,6 @@ extension on TranslationsEn {
 			'settings.theme.system' => 'System',
 			'settings.theme.light' => 'Light',
 			'settings.theme.dark' => 'Dark',
-			'nav.operations' => 'Operations',
-			'nav.settings' => 'Settings',
 			'nav.back' => 'Back',
 			'operations.modeReceive' => 'Receive',
 			'operations.modeIssue' => 'Issue',

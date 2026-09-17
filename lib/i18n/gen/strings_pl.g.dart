@@ -78,6 +78,9 @@ class Translations$settings$pl {
 
 	// Translations
 
+	/// pl: 'Ustawienia'
+	String get title => 'Ustawienia';
+
 	/// pl: 'Zalogowano jako'
 	String get loggedInAs => 'Zalogowano jako';
 
@@ -106,12 +109,6 @@ class Translations$nav$pl {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
-
-	/// pl: 'Operacje'
-	String get operations => 'Operacje';
-
-	/// pl: 'Ustawienia'
-	String get settings => 'Ustawienia';
 
 	/// pl: 'Wstecz'
 	String get back => 'Wstecz';
@@ -272,6 +269,7 @@ extension on Translations {
 			'login.password' => 'Hasło',
 			'login.submit' => 'Zaloguj',
 			'login.submitting' => 'Logowanie...',
+			'settings.title' => 'Ustawienia',
 			'settings.loggedInAs' => 'Zalogowano jako',
 			'settings.logout' => 'Wyloguj',
 			'settings.apiUrl' => 'Adres wpsApi',
@@ -282,8 +280,6 @@ extension on Translations {
 			'settings.theme.system' => 'Systemowy',
 			'settings.theme.light' => 'Jasny',
 			'settings.theme.dark' => 'Ciemny',
-			'nav.operations' => 'Operacje',
-			'nav.settings' => 'Ustawienia',
 			'nav.back' => 'Wstecz',
 			'operations.modeReceive' => 'Przyjęcie',
 			'operations.modeIssue' => 'Wydanie',
