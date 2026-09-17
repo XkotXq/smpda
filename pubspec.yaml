@@ -52,7 +52,6 @@ dependencies:
   # rule gating everything but /login on AppSettings.isLoggedIn, instead
   # of that check living in a widget (the old AuthGate).
   go_router: ^18.0.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

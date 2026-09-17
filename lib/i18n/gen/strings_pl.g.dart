@@ -131,11 +131,11 @@ class Translations$operations$pl {
 	/// pl: 'Zeskanuj lub wpisz kod'
 	String get scanPlaceholder => 'Zeskanuj lub wpisz kod';
 
-	/// pl: 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.'
-	String get queueEmpty => 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.';
+	/// pl: 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.'
+	String get idle => 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.';
 
-	/// pl: 'Do zatwierdzenia ({count})'
-	String queueTitle({required Object count}) => 'Do zatwierdzenia (${count})';
+	/// pl: 'Lokalizacja'
+	String get location => 'Lokalizacja';
 
 	/// pl: 'Nr jednostki'
 	String get unitLabel => 'Nr jednostki';
@@ -150,16 +150,16 @@ class Translations$operations$pl {
 	String available({required Object value}) => 'Dostępne: ${value}';
 
 	/// pl: 'Zatwierdź'
-	String get submit => 'Zatwierdź';
+	String get confirm => 'Zatwierdź';
+
+	/// pl: 'Anuluj'
+	String get cancel => 'Anuluj';
 
 	/// pl: 'Zapisywanie...'
 	String get submitting => 'Zapisywanie...';
 
 	/// pl: 'Zapisano.'
 	String get submitted => 'Zapisano.';
-
-	/// pl: 'Usuń'
-	String get remove => 'Usuń';
 
 	/// pl: 'Wybierz co wydać'
 	String get pickTitle => 'Wybierz co wydać';
@@ -172,9 +172,6 @@ class Translations$operations$pl {
 
 	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
 	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
-
-	/// pl: 'Ten wpis jest już w kolejce.'
-	String get toastAlready => 'Ten wpis jest już w kolejce.';
 
 	/// pl: 'Brak dostępnej ilości tego materiału do wydania.'
 	String get toastNotIssuable => 'Brak dostępnej ilości tego materiału do wydania.';
@@ -281,21 +278,20 @@ extension on Translations {
 			'operations.modeReceive' => 'Przyjęcie',
 			'operations.modeIssue' => 'Wydanie',
 			'operations.scanPlaceholder' => 'Zeskanuj lub wpisz kod',
-			'operations.queueEmpty' => 'Kolejka jest pusta - zeskanuj materiał, aby dodać wiersz.',
-			'operations.queueTitle' => ({required Object count}) => 'Do zatwierdzenia (${count})',
+			'operations.idle' => 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.',
+			'operations.location' => 'Lokalizacja',
 			'operations.unitLabel' => 'Nr jednostki',
 			'operations.unitOptional' => 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)',
 			'operations.quantityLabel' => 'Ilość',
 			'operations.available' => ({required Object value}) => 'Dostępne: ${value}',
-			'operations.submit' => 'Zatwierdź',
+			'operations.confirm' => 'Zatwierdź',
+			'operations.cancel' => 'Anuluj',
 			'operations.submitting' => 'Zapisywanie...',
 			'operations.submitted' => 'Zapisano.',
-			'operations.remove' => 'Usuń',
 			'operations.pickTitle' => 'Wybierz co wydać',
 			'operations.pickPending' => 'Ilość nieprzypisana',
 			'operations.pickUnit' => ({required Object unitId}) => 'Jednostka ${unitId}',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
-			'operations.toastAlready' => 'Ten wpis jest już w kolejce.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',

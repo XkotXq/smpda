@@ -74,43 +74,50 @@ lib/
     auth/                   LoginScreen (login/password only)
     dashboard/              DashboardScreen - tile picker (Materiały SM, FRP) shown after login
     frp/                    FrpScreen - placeholder, not built yet
-    home/                   HomeShell - Materiały SM section (bottom-bar: Operacje/Ustawienia)
-    materials/              scan -> queue -> review -> submit przyjęcie/wydanie flow (see below)
+    home/                   HomeShell - Materiały SM's title bar + Przyjęcie/Wydanie switch
+    materials/              scan -> fill in quantity -> confirm przyjęcie/wydanie flow (see below)
     settings/               API URL/token, language, theme, logout
 ```
 
 ### `features/materials/` - przyjęcie/wydanie
 
-`ReceiveIssueScreen` implements one scan -> queue -> review -> submit flow
-for both przyjęcie and wydanie, modeled on WPS's own proven
-BulkReceiveGrid/BulkIssuePanel UX (`../WPS/components/`) rather than a
-one-code-at-a-time form:
+`ReceiveIssueScreen` is one operation at a time, not a batch: scan (or
+type) a code, the item's number/name/location and a quantity field
+appear, confirm, and the screen is immediately ready for the next scan.
+No queue/review step - an operator's hands are on the scanner trigger and
+the PDA's own keypad, not building up a list to review later.
 
 - `receive_issue_models.dart` - `FlowMode` (receive/issue), `IssueKind`
-  (unit/aggregate/pending, mirroring wpsApi's own row-kind split),
-  `ReceiveLine`/`IssueLine` queue line types, `ScanOutcome` (what a scan
-  resolved to: added, needs a picker, unknown code, nothing available to
-  issue, or already queued).
+  (unit/aggregate/pending, mirroring wpsApi's own row-kind split), the
+  `CurrentOperation` sealed type (`ReceiveOperation`/`IssueOperation` -
+  the one operation in progress, or none), `ScanOutcome` (what a scan
+  resolved to: started, needs a picker, unknown code, or nothing
+  available to issue).
 - `receive_issue_controller.dart` - `ReceiveIssueController` (Riverpod
   `Notifier`). `scan(code)` does two-tier resolution: first checks every
   cached item's units for a matching *unit tag* (issue mode only - a
   spool's own label identifies an exact unit to issue in full), then
   falls back to an *item-number* match against current stock, then
-  `sm_catalog`. An item-number match auto-queues when unambiguous (one
-  leaf to issue, or any receipt) and returns `ScanNeedsPick` when an
-  issue could mean more than one unit/pending remainder - the screen
-  opens a picker sheet for that case. `submit()` batches the whole queue
-  through one `SmItemsApi.upsert()` per touched item (clamp-not-delete
-  for aggregate/pending issues, drop-from-units-array for a full unit
-  issue, append-new-unit or increment pending/total for a receipt -
-  never delete an item at zero, since `sm_items` is shared with WPS's own
-  UI) plus one batched `SmOperationsApi.create()` call for history.
+  `sm_catalog`. An item-number match starts the operation when
+  unambiguous (one leaf to issue, or any receipt) and returns
+  `ScanNeedsPick` when an issue could mean more than one unit/pending
+  remainder - the screen opens a picker sheet for that case. `submit()`
+  saves the one current operation as one `SmItemsApi.upsert()` + one
+  `SmOperationsApi.create()` call (clamp-not-delete for aggregate/
+  pending issues, drop-from-units-array for a full unit issue, append-
+  new-unit or increment pending/total for a receipt - never delete an
+  item at zero, since `sm_items` is shared with WPS's own UI), then
+  clears the operation.
 - `materials_providers.dart` - cached `smItemsListProvider`/
   `smCatalogListProvider` (`FutureProvider`s) the controller resolves
   scans against, invalidated after a successful submit.
-- `receive_issue_screen.dart` - mode toggle, scan/manual-entry field
-  (reuses `BarcodeScannerService`), editable queue list, picker
-  `showShadSheet` for the ambiguous-issue case, submit button.
+- `receive_issue_screen.dart` - scan/manual-entry field (reuses
+  `BarcodeScannerService`), the current operation's card (auto-focused
+  quantity field - the system/physical keyboard handles input, no
+  custom on-screen keypad: a `virtual_keypad` package integration was
+  tried and dropped after its keys didn't actually insert characters
+  into `ShadInput` on a real device test), picker `showShadSheet` for
+  the ambiguous-issue case, Anuluj/Zatwierdź buttons.
 
 ## Status - what's done
 
@@ -136,9 +143,11 @@ one-code-at-a-time form:
   `build-tools`/cmake versions the Gradle plugins ask for on first
   build).
 
-Not yet run against a real device/emulator: the przyjęcie/wydanie flow
-only has `flutter analyze`/`flutter test` behind it so far, no manual
-click-through with `simulateScan` yet.
+Przyjęcie/wydanie has been click-tested end to end on the EDA51K
+emulator against a real local wpsApi (`SKIP_CIP_AUTH`/`SKIP_API_AUTH`
+enabled, see below): scan -> item details -> type quantity -> confirm ->
+verified the row in Postgres actually changed, for both modes. Not yet
+tried against real Honeywell hardware/a real network.
 
 ## Local dev environment (this machine)
 
@@ -163,6 +172,16 @@ tab once logged in) and point it at your `wpsApi` instance's LAN address
 (not `localhost` - the PDA is a separate device on the same Wi-Fi) and
 the same `API_TOKEN` wpsApi's `.env` uses - login itself only needs the
 address (it doesn't require the bearer token, see AuthApi's own comment).
+On the Android emulator specifically, `localhost`/the host's real LAN IP
+are usually *not* reachable from inside the emulator's own network -
+use `http://10.0.2.2:<port>` (the emulator's alias for the host) instead.
+
+Working from a network that can't reach the real CIP system (e.g. home,
+off VPN)? wpsApi's own `SKIP_CIP_AUTH=true` (`.env`, dev-only, see its
+`src/routes/auth.js`) accepts any non-empty login/password instead of
+proxying to CIP - paired with the existing `SKIP_API_AUTH=true` this
+gets the whole app working end to end against a local Postgres with no
+company-network dependency at all.
 
 ## Android target
 

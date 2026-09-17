@@ -96,21 +96,20 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get modeReceive => 'Receive';
 	@override String get modeIssue => 'Issue';
 	@override String get scanPlaceholder => 'Scan or type a code';
-	@override String get queueEmpty => 'The queue is empty - scan a material to add a line.';
-	@override String queueTitle({required Object count}) => 'To confirm (${count})';
+	@override String get idle => 'Pull the scanner trigger or scan a code manually to start.';
+	@override String get location => 'Location';
 	@override String get unitLabel => 'Unit no.';
 	@override String get unitOptional => 'Unit no. (optional - blank = unassigned quantity)';
 	@override String get quantityLabel => 'Quantity';
 	@override String available({required Object value}) => 'Available: ${value}';
-	@override String get submit => 'Confirm';
+	@override String get confirm => 'Confirm';
+	@override String get cancel => 'Cancel';
 	@override String get submitting => 'Saving...';
 	@override String get submitted => 'Saved.';
-	@override String get remove => 'Remove';
 	@override String get pickTitle => 'Choose what to issue';
 	@override String get pickPending => 'Unassigned quantity';
 	@override String pickUnit({required Object unitId}) => 'Unit ${unitId}';
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
-	@override String get toastAlready => 'That line is already queued.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 }
 
@@ -197,21 +196,20 @@ extension on TranslationsEn {
 			'operations.modeReceive' => 'Receive',
 			'operations.modeIssue' => 'Issue',
 			'operations.scanPlaceholder' => 'Scan or type a code',
-			'operations.queueEmpty' => 'The queue is empty - scan a material to add a line.',
-			'operations.queueTitle' => ({required Object count}) => 'To confirm (${count})',
+			'operations.idle' => 'Pull the scanner trigger or scan a code manually to start.',
+			'operations.location' => 'Location',
 			'operations.unitLabel' => 'Unit no.',
 			'operations.unitOptional' => 'Unit no. (optional - blank = unassigned quantity)',
 			'operations.quantityLabel' => 'Quantity',
 			'operations.available' => ({required Object value}) => 'Available: ${value}',
-			'operations.submit' => 'Confirm',
+			'operations.confirm' => 'Confirm',
+			'operations.cancel' => 'Cancel',
 			'operations.submitting' => 'Saving...',
 			'operations.submitted' => 'Saved.',
-			'operations.remove' => 'Remove',
 			'operations.pickTitle' => 'Choose what to issue',
 			'operations.pickPending' => 'Unassigned quantity',
 			'operations.pickUnit' => ({required Object unitId}) => 'Unit ${unitId}',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
-			'operations.toastAlready' => 'That line is already queued.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',

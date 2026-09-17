@@ -14,39 +14,40 @@ import 'receive_issue_models.dart';
 class ReceiveIssueState {
   const ReceiveIssueState({
     this.mode = FlowMode.receive,
-    this.lines = const [],
+    this.current,
     this.submitting = false,
     this.error,
   });
 
   final FlowMode mode;
-  final List<QueueLine> lines;
+  final CurrentOperation? current;
   final bool submitting;
   final String? error;
 
   ReceiveIssueState copyWith({
-    List<QueueLine>? lines,
+    CurrentOperation? current,
+    bool clearCurrent = false,
     bool? submitting,
     String? error,
     bool clearError = false,
   }) {
     return ReceiveIssueState(
       mode: mode,
-      lines: lines ?? this.lines,
+      current: clearCurrent ? null : (current ?? this.current),
       submitting: submitting ?? this.submitting,
       error: clearError ? null : (error ?? this.error),
     );
   }
 }
 
-/// Drives the scan -> queue -> review -> submit flow (see
-/// receive_issue_models.dart for the line/outcome types this returns).
+/// Drives the one-operation-at-a-time flow: scan -> the item's details and
+/// a quantity field appear -> confirm -> the operation is saved right away
+/// and the screen is ready for the next scan. See receive_issue_models.dart
+/// for the CurrentOperation/ScanOutcome types this returns.
 class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   @override
   ReceiveIssueState build() => const ReceiveIssueState();
 
-  /// Switching mode starts a fresh queue rather than trying to keep a
-  /// mixed batch (see FlowMode's own doc comment).
   void setMode(FlowMode mode) {
     if (mode == state.mode) return;
     state = ReceiveIssueState(mode: mode);
@@ -66,20 +67,6 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     return null;
   }
 
-  bool _alreadyQueued({String? itemNo, String? unitId, IssueKind? kind}) {
-    return state.lines.any((line) {
-      if (line is IssueLine) {
-        if (kind == null) return false;
-        if (kind == IssueKind.unit) {
-          return line.kind == IssueKind.unit && line.unitId == unitId;
-        }
-        return line.itemNo == itemNo && line.kind == kind;
-      }
-      if (line is ReceiveLine) return kind == null && line.itemNo == itemNo;
-      return false;
-    });
-  }
-
   ScanOutcome scan(String rawCode) {
     final code = rawCode.trim();
     if (code.isEmpty) return ScanUnknown();
@@ -90,15 +77,15 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     for (final item in ref.read(smItemsListProvider).value ?? const <SmItem>[]) {
       for (final unit in item.units) {
         if (unit.unitId != code) continue;
-        if (_alreadyQueued(unitId: code, kind: IssueKind.unit)) return ScanAlreadyQueued();
-        _addLine(IssueLine(
+        _setCurrent(IssueOperation(
           itemNo: item.itemNo,
           itemName: item.itemName,
+          locationCode: item.locationCode,
           kind: IssueKind.unit,
           available: unit.quantity,
           unitId: unit.unitId,
         ));
-        return ScanAdded();
+        return ScanStarted();
       }
     }
 
@@ -108,14 +95,14 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     if (!item.trackedIndividually) {
       final qty = parseQuantity(item.totalQuantity ?? '0') ?? 0;
       if (qty <= 0) return ScanNotIssuable();
-      if (_alreadyQueued(itemNo: item.itemNo, kind: IssueKind.aggregate)) return ScanAlreadyQueued();
-      _addLine(IssueLine(
+      _setCurrent(IssueOperation(
         itemNo: item.itemNo,
         itemName: item.itemName,
+        locationCode: item.locationCode,
         kind: IssueKind.aggregate,
         available: item.totalQuantity ?? '0',
       ));
-      return ScanAdded();
+      return ScanStarted();
     }
 
     final leaves = <({IssueKind kind, String? unitId, String quantity})>[
@@ -126,93 +113,96 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
 
     if (leaves.length == 1) {
       final leaf = leaves.first;
-      if (_alreadyQueued(itemNo: item.itemNo, unitId: leaf.unitId, kind: leaf.kind)) {
-        return ScanAlreadyQueued();
-      }
-      _addLine(IssueLine(
+      _setCurrent(IssueOperation(
         itemNo: item.itemNo,
         itemName: item.itemName,
+        locationCode: item.locationCode,
         kind: leaf.kind,
         available: leaf.quantity,
         unitId: leaf.unitId,
       ));
-      return ScanAdded();
+      return ScanStarted();
     }
 
     return ScanNeedsPick(
       item.itemNo,
       item.itemName,
+      item.locationCode,
       [for (final unit in item.units) (unitId: unit.unitId, quantity: unit.quantity)],
       item.hasPendingQuantity ? item.pendingQuantity : null,
     );
   }
 
   ScanOutcome _scanForReceive(String code) {
-    if (_alreadyQueued(itemNo: code)) return ScanAlreadyQueued();
-
     final stockItem = _findItem(code);
     if (stockItem != null) {
-      _addLine(ReceiveLine(
+      _setCurrent(ReceiveOperation(
         itemNo: stockItem.itemNo,
         itemName: stockItem.itemName,
+        locationCode: stockItem.locationCode,
         trackedIndividually: stockItem.trackedIndividually,
       ));
-      return ScanAdded();
+      return ScanStarted();
     }
 
     final catalogItem = _findCatalog(code);
     if (catalogItem != null) {
-      _addLine(ReceiveLine(
+      _setCurrent(ReceiveOperation(
         itemNo: catalogItem.itemNo,
         itemName: catalogItem.itemName,
+        locationCode: '',
         trackedIndividually: catalogItem.individualUnits,
       ));
-      return ScanAdded();
+      return ScanStarted();
     }
 
     return ScanUnknown();
   }
 
   /// Called once the operator resolves a ScanNeedsPick from the picker sheet.
-  void addIssuePick({
+  void pickIssueLeaf({
     required String itemNo,
     required String itemName,
+    required String locationCode,
     required IssueKind kind,
     required String available,
     String? unitId,
   }) {
-    if (_alreadyQueued(itemNo: itemNo, unitId: unitId, kind: kind)) return;
-    _addLine(IssueLine(itemNo: itemNo, itemName: itemName, kind: kind, available: available, unitId: unitId));
+    _setCurrent(IssueOperation(
+      itemNo: itemNo,
+      itemName: itemName,
+      locationCode: locationCode,
+      kind: kind,
+      available: available,
+      unitId: unitId,
+    ));
   }
 
-  void _addLine(QueueLine line) {
-    state = state.copyWith(lines: [...state.lines, line], clearError: true);
+  void _setCurrent(CurrentOperation op) {
+    state = state.copyWith(current: op, clearError: true);
   }
 
-  void removeLine(int index) {
-    final next = [...state.lines]..removeAt(index);
-    state = state.copyWith(lines: next);
+  void cancelCurrent() {
+    state = state.copyWith(clearCurrent: true, clearError: true);
   }
 
-  void updateReceiveQuantity(int index, String value) {
-    final line = state.lines[index];
-    if (line is! ReceiveLine) return;
-    line.quantity = sanitizeQuantityInput(value);
-    state = state.copyWith(lines: [...state.lines]);
+  void updateQuantity(String value) {
+    final op = state.current;
+    if (op == null) return;
+    if (op is ReceiveOperation) {
+      op.quantity = sanitizeQuantityInput(value);
+    } else if (op is IssueOperation) {
+      if (op.kind == IssueKind.unit) return;
+      op.quantity = _capQuantity(sanitizeQuantityInput(value), op.available);
+    }
+    state = state.copyWith(current: op);
   }
 
-  void updateReceiveUnitId(int index, String value) {
-    final line = state.lines[index];
-    if (line is! ReceiveLine) return;
-    line.unitId = value;
-    state = state.copyWith(lines: [...state.lines]);
-  }
-
-  void updateIssueQuantity(int index, String value) {
-    final line = state.lines[index];
-    if (line is! IssueLine || line.kind == IssueKind.unit) return;
-    line.quantity = _capQuantity(sanitizeQuantityInput(value), line.available);
-    state = state.copyWith(lines: [...state.lines]);
+  void updateUnitId(String value) {
+    final op = state.current;
+    if (op is! ReceiveOperation) return;
+    op.unitId = value;
+    state = state.copyWith(current: op);
   }
 
   String _capQuantity(String value, String max) {
@@ -222,100 +212,91 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     return formatQuantity(m);
   }
 
-  /// Batches the whole queue into one upsert per touched item plus a
-  /// single history call - mirrors wps's own reducers (BulkReceiveGrid /
-  /// BulkIssuePanel): clamp-not-delete for aggregate/pending, drop the
-  /// unit from the array for a full unit issue, append/increment for a
-  /// receipt. Returns false (leaving the queue intact) on any API error.
+  /// Saves the current operation as one upsert + one history entry, then
+  /// clears the screen for the next scan. Mirrors wps's own reducers
+  /// (BulkReceiveGrid/BulkIssuePanel): clamp-not-delete for aggregate/
+  /// pending, drop the unit from the array for a full unit issue, append/
+  /// increment for a receipt. Returns false (leaving the operation intact)
+  /// on any API error so the operator can retry without re-scanning.
   Future<bool> submit() async {
-    if (state.lines.isEmpty || state.submitting) return false;
+    final op = state.current;
+    if (op == null || state.submitting) return false;
+    final qty = parseQuantity(op.quantity) ?? 0;
+    if (qty <= 0) return false;
+
     state = state.copyWith(submitting: true, clearError: true);
     try {
       final itemsApi = ref.read(smItemsApiProvider);
       final operationsApi = ref.read(smOperationsApiProvider);
       final operatorName = ref.read(appSettingsProvider).value?.operatorName;
 
-      final working = <String, SmItem>{
-        for (final item in ref.read(smItemsListProvider).value ?? const <SmItem>[]) item.itemNo: item,
-      };
-      final operations = <SmOperation>[];
+      final existing = _findItem(op.itemNo);
+      SmItem item;
+      SmOperation operation;
 
-      for (final line in state.lines) {
-        if (line is ReceiveLine) {
-          final qty = parseQuantity(line.quantity) ?? 0;
-          if (qty <= 0) continue;
+      if (op is ReceiveOperation) {
+        item = existing ??
+            SmItem(
+              itemNo: op.itemNo,
+              itemName: op.itemName,
+              locationCode: '',
+              note: '-',
+              trackedIndividually: op.trackedIndividually,
+              totalQuantity: op.trackedIndividually ? null : '0',
+            );
 
-          var item = working[line.itemNo] ??
-              SmItem(
-                itemNo: line.itemNo,
-                itemName: line.itemName,
-                locationCode: '',
-                note: '-',
-                trackedIndividually: line.trackedIndividually,
-                totalQuantity: line.trackedIndividually ? null : '0',
-              );
-
-          final unitId = line.unitId.trim();
-          if (!item.trackedIndividually) {
-            final next = (parseQuantity(item.totalQuantity ?? '0') ?? 0) + qty;
-            item = item.copyWith(totalQuantity: formatQuantity(next));
-          } else if (unitId.isEmpty) {
-            final next = (parseQuantity(item.pendingQuantity ?? '0') ?? 0) + qty;
-            item = item.copyWith(pendingQuantity: formatQuantity(next));
-          } else {
-            item = item.copyWith(units: [
-              ...item.units,
-              SmUnit(id: '', unitId: unitId, quantity: formatQuantity(qty)),
-            ]);
-          }
-          working[line.itemNo] = item;
-
-          operations.add(SmOperation(
-            operation: 'receipt',
-            itemNo: line.itemNo,
-            itemName: line.itemName,
-            unitId: unitId.isEmpty ? null : unitId,
-            quantity: formatQuantity(qty),
-            operator: operatorName,
-          ));
-        } else if (line is IssueLine) {
-          final item = working[line.itemNo];
-          if (item == null) continue;
-          final qty = parseQuantity(line.quantity) ?? 0;
-          if (qty <= 0) continue;
-
-          SmItem next;
-          switch (line.kind) {
-            case IssueKind.unit:
-              next = item.copyWith(units: item.units.where((u) => u.unitId != line.unitId).toList());
-            case IssueKind.aggregate:
-              final remaining = (parseQuantity(item.totalQuantity ?? '0') ?? 0) - qty;
-              next = item.copyWith(totalQuantity: formatQuantity(remaining < 0 ? 0 : remaining));
-            case IssueKind.pending:
-              final remaining = (parseQuantity(item.pendingQuantity ?? '0') ?? 0) - qty;
-              next = remaining <= 0
-                  ? item.copyWith(clearPendingQuantity: true)
-                  : item.copyWith(pendingQuantity: formatQuantity(remaining));
-          }
-          working[line.itemNo] = next;
-
-          operations.add(SmOperation(
-            operation: 'issue',
-            itemNo: line.itemNo,
-            itemName: line.itemName,
-            unitId: line.unitId,
-            quantity: formatQuantity(qty),
-            operator: operatorName,
-          ));
+        final unitId = op.unitId.trim();
+        if (!item.trackedIndividually) {
+          final next = (parseQuantity(item.totalQuantity ?? '0') ?? 0) + qty;
+          item = item.copyWith(totalQuantity: formatQuantity(next));
+        } else if (unitId.isEmpty) {
+          final next = (parseQuantity(item.pendingQuantity ?? '0') ?? 0) + qty;
+          item = item.copyWith(pendingQuantity: formatQuantity(next));
+        } else {
+          item = item.copyWith(units: [
+            ...item.units,
+            SmUnit(id: '', unitId: unitId, quantity: formatQuantity(qty)),
+          ]);
         }
+
+        operation = SmOperation(
+          operation: 'receipt',
+          itemNo: op.itemNo,
+          itemName: op.itemName,
+          unitId: unitId.isEmpty ? null : unitId,
+          quantity: formatQuantity(qty),
+          operator: operatorName,
+        );
+      } else {
+        op as IssueOperation;
+        if (existing == null) return false;
+        item = existing;
+
+        switch (op.kind) {
+          case IssueKind.unit:
+            item = item.copyWith(units: item.units.where((u) => u.unitId != op.unitId).toList());
+          case IssueKind.aggregate:
+            final remaining = (parseQuantity(item.totalQuantity ?? '0') ?? 0) - qty;
+            item = item.copyWith(totalQuantity: formatQuantity(remaining < 0 ? 0 : remaining));
+          case IssueKind.pending:
+            final remaining = (parseQuantity(item.pendingQuantity ?? '0') ?? 0) - qty;
+            item = remaining <= 0
+                ? item.copyWith(clearPendingQuantity: true)
+                : item.copyWith(pendingQuantity: formatQuantity(remaining));
+        }
+
+        operation = SmOperation(
+          operation: 'issue',
+          itemNo: op.itemNo,
+          itemName: op.itemName,
+          unitId: op.unitId,
+          quantity: formatQuantity(qty),
+          operator: operatorName,
+        );
       }
 
-      final touchedItemNos = state.lines.map((l) => l.itemNo).toSet();
-      for (final itemNo in touchedItemNos) {
-        final item = working[itemNo];
-        if (item != null) await itemsApi.upsert(item);
-      }
-      if (operations.isNotEmpty) await operationsApi.create(operations);
+      await itemsApi.upsert(item);
+      await operationsApi.create([operation]);
 
       ref.invalidate(smItemsListProvider);
       state = ReceiveIssueState(mode: state.mode);
