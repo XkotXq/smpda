@@ -27,7 +27,6 @@
     "modeReceive": "Receive",
     "modeIssue": "Issue",
     "scanPlaceholder": "Scan or type a code",
-    "idle": "Pull the scanner trigger or scan a code manually to start.",
     "location": "Location",
     "unitLabel": "Spool",
     "unitOptional": "Spool number (blank = unmarked)",

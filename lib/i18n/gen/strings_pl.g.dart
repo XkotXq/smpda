@@ -131,9 +131,6 @@ class Translations$operations$pl {
 	/// pl: 'Zeskanuj lub wpisz kod'
 	String get scanPlaceholder => 'Zeskanuj lub wpisz kod';
 
-	/// pl: 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.'
-	String get idle => 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.';
-
 	/// pl: 'Lokalizacja'
 	String get location => 'Lokalizacja';
 
@@ -316,7 +313,6 @@ extension on Translations {
 			'operations.modeReceive' => 'Przyjęcie',
 			'operations.modeIssue' => 'Wydanie',
 			'operations.scanPlaceholder' => 'Zeskanuj lub wpisz kod',
-			'operations.idle' => 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.',
 			'operations.location' => 'Lokalizacja',
 			'operations.unitLabel' => 'Szpula',
 			'operations.unitOptional' => 'Numer szpuli (puste = nieoznaczone)',

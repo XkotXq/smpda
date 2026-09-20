@@ -27,7 +27,6 @@
     "modeReceive": "Przyjęcie",
     "modeIssue": "Wydanie",
     "scanPlaceholder": "Zeskanuj lub wpisz kod",
-    "idle": "Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.",
     "location": "Lokalizacja",
     "unitLabel": "Szpula",
     "unitOptional": "Numer szpuli (puste = nieoznaczone)",

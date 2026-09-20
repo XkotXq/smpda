@@ -163,7 +163,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
     final t = context.t;
     ref.watch(smItemsListProvider);
     ref.watch(smCatalogListProvider);
@@ -184,14 +183,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
               const SizedBox(width: 8),
               ShadButton(onPressed: _submitManualEntry, child: Icon(LucideIcons.scanLine)),
             ],
-          ),
-        ),
-        Expanded(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32),
-              child: Text(t.operations.idle, textAlign: TextAlign.center, style: theme.textTheme.muted),
-            ),
           ),
         ),
       ],

@@ -96,7 +96,6 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get modeReceive => 'Receive';
 	@override String get modeIssue => 'Issue';
 	@override String get scanPlaceholder => 'Scan or type a code';
-	@override String get idle => 'Pull the scanner trigger or scan a code manually to start.';
 	@override String get location => 'Location';
 	@override String get unitLabel => 'Spool';
 	@override String get unitOptional => 'Spool number (blank = unmarked)';
@@ -215,7 +214,6 @@ extension on TranslationsEn {
 			'operations.modeReceive' => 'Receive',
 			'operations.modeIssue' => 'Issue',
 			'operations.scanPlaceholder' => 'Scan or type a code',
-			'operations.idle' => 'Pull the scanner trigger or scan a code manually to start.',
 			'operations.location' => 'Location',
 			'operations.unitLabel' => 'Spool',
 			'operations.unitOptional' => 'Spool number (blank = unmarked)',
