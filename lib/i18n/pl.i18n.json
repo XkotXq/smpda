@@ -33,6 +33,7 @@
     "issueQuantity": "Ilość wydania",
     "pickSpool": "Wybierz numer szpuli",
     "noSpoolNumber": "Brak numeru szpuli",
+    "noSpoolTag": "bez nr szpuli",
     "unitLabel": "Szpula",
     "unitOptional": "Numer szpuli (puste = nieoznaczone)",
     "quantityLabel": "Ilość",

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
 import 'receive_issue_controller.dart';
@@ -153,7 +154,7 @@ class _SpoolPickerScreenState extends ConsumerState<SpoolPickerScreen> {
                             ),
                           ),
                           const Spacer(),
-                          Text(unit.quantity, style: theme.textTheme.muted.copyWith(fontSize: 18)),
+                          Text(trimQuantity(unit.quantity), style: theme.textTheme.muted.copyWith(fontSize: 18)),
                           const SizedBox(width: 12),
                           Container(
                             width: 22,

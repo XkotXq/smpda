@@ -149,6 +149,9 @@ class Translations$operations$pl {
 	/// pl: 'Brak numeru szpuli'
 	String get noSpoolNumber => 'Brak numeru szpuli';
 
+	/// pl: 'bez nr szpuli'
+	String get noSpoolTag => 'bez nr szpuli';
+
 	/// pl: 'Szpula'
 	String get unitLabel => 'Szpula';
 
@@ -325,6 +328,7 @@ extension on Translations {
 			'operations.issueQuantity' => 'Ilość wydania',
 			'operations.pickSpool' => 'Wybierz numer szpuli',
 			'operations.noSpoolNumber' => 'Brak numeru szpuli',
+			'operations.noSpoolTag' => 'bez nr szpuli',
 			'operations.unitLabel' => 'Szpula',
 			'operations.unitOptional' => 'Numer szpuli (puste = nieoznaczone)',
 			'operations.quantityLabel' => 'Ilość',

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
 import 'receive_issue_controller.dart';
 import 'receive_issue_models.dart';
@@ -184,7 +185,10 @@ class _IssueBody extends ConsumerWidget {
     final theme = ShadTheme.of(context);
     final t = context.t;
     final controller = ref.read(receiveIssueControllerProvider.notifier);
-    final bigStyle = theme.textTheme.h1.copyWith(fontSize: 72, fontWeight: FontWeight.w700, height: 1.1);
+    TextStyle bigStyleFor(String text) {
+      final scale = text.length > 6 ? 6 / text.length : 1.0;
+      return theme.textTheme.h1.copyWith(fontSize: 72 * scale, fontWeight: FontWeight.w700, height: 1.1);
+    }
     final divider = Container(height: 1, color: theme.colorScheme.border);
 
     Widget stat(String label, String value) => Expanded(
@@ -213,7 +217,15 @@ class _IssueBody extends ConsumerWidget {
                     const SizedBox(height: 4),
                     Text(op.itemNo, style: theme.textTheme.h3.copyWith(fontSize: 20, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
-                    Text(op.itemName, style: theme.textTheme.muted.copyWith(fontSize: 16)),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Expanded(child: Text(op.itemName, style: theme.textTheme.muted.copyWith(fontSize: 16))),
+                        if (op.kind == IssueKind.pending)
+                          Text(t.operations.noSpoolTag, style: theme.textTheme.muted.copyWith(fontSize: 14)),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -224,7 +236,7 @@ class _IssueBody extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     stat(t.operations.location, op.locationCode.isEmpty ? '-' : op.locationCode),
-                    stat(t.operations.onStock, op.available),
+                    stat(t.operations.onStock, trimQuantity(op.available)),
                     if (op.kind == IssueKind.unit) stat(t.operations.unitLabel, op.unitId ?? ''),
                   ],
                 ),
@@ -244,22 +256,25 @@ class _IssueBody extends ConsumerWidget {
                   Text(t.operations.issueQuantity, style: theme.textTheme.muted.copyWith(fontSize: 14)),
                   const SizedBox(height: 6),
                   SizedBox(
-                    width: 240,
+                    width: 280,
                     child: op.kind == IssueKind.unit
-                        ? Text(op.quantity, textAlign: TextAlign.center, style: bigStyle)
-                        : ShadInput(
-                            controller: quantityController,
-                            focusNode: quantityFocusNode,
-                            autofocus: true,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            onChanged: controller.updateQuantity,
-                            textAlign: TextAlign.center,
-                            style: bigStyle,
-                            padding: EdgeInsets.zero,
-                            decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                        ? Text(op.quantity, textAlign: TextAlign.center, style: bigStyleFor(op.quantity))
+                        : ListenableBuilder(
+                            listenable: quantityController,
+                            builder: (context, _) => ShadInput(
+                              controller: quantityController,
+                              focusNode: quantityFocusNode,
+                              autofocus: op.kind != IssueKind.pending,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              onChanged: controller.updateQuantity,
+                              textAlign: TextAlign.center,
+                              style: bigStyleFor(quantityController.text),
+                              padding: EdgeInsets.zero,
+                              decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                            ),
                           ),
                   ),
-                  Container(width: 240, height: 2, color: theme.colorScheme.primary),
+                  Container(width: 280, height: 2, color: theme.colorScheme.primary),
                 ],
               ),
             ),

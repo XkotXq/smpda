@@ -33,6 +33,7 @@
     "issueQuantity": "Issue quantity",
     "pickSpool": "Choose a spool number",
     "noSpoolNumber": "No spool number",
+    "noSpoolTag": "no spool no.",
     "unitLabel": "Spool",
     "unitOptional": "Spool number (blank = unmarked)",
     "quantityLabel": "Quantity",

@@ -1,3 +1,5 @@
+import '../../core/utils/quantity.dart';
+
 /// Which of the two workflows is active - switching mode clears whatever
 /// operation was in progress (see ReceiveIssueController.setMode).
 enum FlowMode { receive, issue }
@@ -55,8 +57,11 @@ class ReceiveOperation extends CurrentOperation {
 /// [kind] decides what [unitId]/[available]/[quantity] mean:
 /// - unit: [unitId] is that spool's own tag, [quantity] always equals
 ///   [available] (no partial unit issue) and isn't user-editable.
-/// - aggregate/pending: [unitId] is null, [quantity] starts blank and
+/// - aggregate: [unitId] is null, [quantity] starts blank and
 ///   must be typed, capped at [available].
+/// - pending (unmarked stock): [unitId] is null, [quantity] starts as the
+///   whole [available] amount (the usual case is issuing all of it) and can
+///   be lowered, never raised past [available].
 class IssueOperation extends CurrentOperation {
   IssueOperation({
     required super.itemNo,
@@ -65,7 +70,7 @@ class IssueOperation extends CurrentOperation {
     required this.kind,
     required this.available,
     this.unitId,
-  }) : quantity = kind == IssueKind.unit ? available : '';
+  }) : quantity = kind == IssueKind.aggregate ? '' : trimQuantity(available);
 
   final IssueKind kind;
   final String? unitId;

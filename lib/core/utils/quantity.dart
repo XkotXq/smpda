@@ -27,3 +27,13 @@ double? parseQuantity(String value) {
 String formatQuantity(num value) {
   return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(3);
 }
+
+/// "48.400" -> "48.4", "50.000" -> "50" - a quantity read from stock as
+/// shown on screen (or prefilled into a field), without trailing zeros.
+String trimQuantity(String value) {
+  final n = parseQuantity(value);
+  if (n == null) return value;
+  var text = formatQuantity(n);
+  if (text.contains('.')) text = text.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\.$'), '');
+  return text;
+}

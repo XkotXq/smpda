@@ -102,6 +102,7 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get issueQuantity => 'Issue quantity';
 	@override String get pickSpool => 'Choose a spool number';
 	@override String get noSpoolNumber => 'No spool number';
+	@override String get noSpoolTag => 'no spool no.';
 	@override String get unitLabel => 'Spool';
 	@override String get unitOptional => 'Spool number (blank = unmarked)';
 	@override String get quantityLabel => 'Quantity';
@@ -222,6 +223,7 @@ extension on TranslationsEn {
 			'operations.issueQuantity' => 'Issue quantity',
 			'operations.pickSpool' => 'Choose a spool number',
 			'operations.noSpoolNumber' => 'No spool number',
+			'operations.noSpoolTag' => 'no spool no.',
 			'operations.unitLabel' => 'Spool',
 			'operations.unitOptional' => 'Spool number (blank = unmarked)',
 			'operations.quantityLabel' => 'Quantity',
