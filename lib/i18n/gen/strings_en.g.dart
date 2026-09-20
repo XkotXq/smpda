@@ -124,6 +124,8 @@ class _Translations$dashboard$en implements Translations$dashboard$pl {
 	@override String get online => 'Online';
 	@override String get offline => 'Offline';
 	@override String get modules => 'Modules';
+	@override String get tabAccount => 'Account';
+	@override late final _Translations$dashboard$account$en account = _Translations$dashboard$account$en._(_root);
 	@override late final _Translations$dashboard$materialsSm$en materialsSm = _Translations$dashboard$materialsSm$en._(_root);
 	@override late final _Translations$dashboard$frp$en frp = _Translations$dashboard$frp$en._(_root);
 }
@@ -149,6 +151,19 @@ class _Translations$settings$theme$en implements Translations$settings$theme$pl 
 	@override String get system => 'System';
 	@override String get light => 'Light';
 	@override String get dark => 'Dark';
+}
+
+// Path: dashboard.account
+class _Translations$dashboard$account$en implements Translations$dashboard$account$pl {
+	_Translations$dashboard$account$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Account information';
+	@override String get operator => 'Employee number';
+	@override String get status => 'Status';
+	@override String get server => 'Server';
 }
 
 // Path: dashboard.materialsSm
@@ -219,6 +234,11 @@ extension on TranslationsEn {
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',
 			'dashboard.modules' => 'Modules',
+			'dashboard.tabAccount' => 'Account',
+			'dashboard.account.title' => 'Account information',
+			'dashboard.account.operator' => 'Employee number',
+			'dashboard.account.status' => 'Status',
+			'dashboard.account.server' => 'Server',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',
 			'dashboard.frp.title' => 'FRP',

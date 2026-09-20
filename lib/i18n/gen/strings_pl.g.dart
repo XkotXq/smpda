@@ -197,6 +197,10 @@ class Translations$dashboard$pl {
 	/// pl: 'Moduły'
 	String get modules => 'Moduły';
 
+	/// pl: 'Konto'
+	String get tabAccount => 'Konto';
+
+	late final Translations$dashboard$account$pl account = Translations$dashboard$account$pl._(_root);
 	late final Translations$dashboard$materialsSm$pl materialsSm = Translations$dashboard$materialsSm$pl._(_root);
 	late final Translations$dashboard$frp$pl frp = Translations$dashboard$frp$pl._(_root);
 }
@@ -232,6 +236,27 @@ class Translations$settings$theme$pl {
 
 	/// pl: 'Ciemny'
 	String get dark => 'Ciemny';
+}
+
+// Path: dashboard.account
+class Translations$dashboard$account$pl {
+	Translations$dashboard$account$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Informacje o koncie'
+	String get title => 'Informacje o koncie';
+
+	/// pl: 'Numer pracownika'
+	String get operator => 'Numer pracownika';
+
+	/// pl: 'Status'
+	String get status => 'Status';
+
+	/// pl: 'Serwer'
+	String get server => 'Serwer';
 }
 
 // Path: dashboard.materialsSm
@@ -310,6 +335,11 @@ extension on Translations {
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',
 			'dashboard.modules' => 'Moduły',
+			'dashboard.tabAccount' => 'Konto',
+			'dashboard.account.title' => 'Informacje o koncie',
+			'dashboard.account.operator' => 'Numer pracownika',
+			'dashboard.account.status' => 'Status',
+			'dashboard.account.server' => 'Serwer',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',
 			'dashboard.frp.title' => 'FRP',

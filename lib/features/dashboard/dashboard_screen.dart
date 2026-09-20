@@ -40,15 +40,20 @@ final _digitKeys = {
 /// physical number keys, so an operator can jump straight to a module
 /// without touching the screen at all. `Focus.onKeyEvent` below matches
 /// that digit against the row list, same index a screen tap would use.
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  int _tab = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final t = context.t;
-    final operatorName = ref.watch(appSettingsProvider).value?.operatorName ?? '';
-    final online = ref.watch(serverOnlineProvider).value;
     final tiles = [
       (
         icon: LucideIcons.arrowLeftRight,
@@ -67,7 +72,7 @@ class DashboardScreen extends ConsumerWidget {
     return Focus(
       autofocus: true,
       onKeyEvent: (node, event) {
-        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+        if (_tab != 0 || event is! KeyDownEvent) return KeyEventResult.ignored;
         final digit = _digitKeys[event.logicalKey];
         if (digit == null || digit > tiles.length) return KeyEventResult.ignored;
         tiles[digit - 1].onTap();
@@ -84,8 +89,12 @@ class DashboardScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        t.dashboard.appTitle,
-                        style: theme.textTheme.h2.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+                        _tab == 0 ? t.dashboard.appTitle : t.dashboard.account.title,
+                        style: theme.textTheme.h2.copyWith(
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                          fontSize: _tab == 0 ? null : 26,
+                        ),
                       ),
                     ),
                     ShadButton.ghost(
@@ -96,60 +105,145 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
               Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                  children: [
-                    Text(
-                      t.dashboard.modules.toUpperCase(),
-                      style: theme.textTheme.small.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.2,
-                        color: theme.colorScheme.mutedForeground,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    for (var i = 0; i < tiles.length; i++) ...[
-                      if (i > 0) Container(height: 1, color: theme.colorScheme.border),
-                      _DashboardRow(number: i + 1, tile: tiles[i]),
-                    ],
-                  ],
-                ),
+                child: _tab == 0
+                    ? ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                        children: [
+                          Text(
+                            t.dashboard.modules.toUpperCase(),
+                            style: theme.textTheme.small.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.2,
+                              color: theme.colorScheme.mutedForeground,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          for (var i = 0; i < tiles.length; i++) ...[
+                            if (i > 0) Container(height: 1, color: theme.colorScheme.border),
+                            _DashboardRow(number: i + 1, tile: tiles[i]),
+                          ],
+                        ],
+                      )
+                    : const _AccountView(),
               ),
               DecoratedBox(
                 decoration: BoxDecoration(border: Border(top: BorderSide(color: theme.colorScheme.border))),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  child: Row(
-                    children: [
-                      Icon(LucideIcons.user, size: 18, color: theme.colorScheme.mutedForeground),
-                      const SizedBox(width: 10),
-                      Expanded(child: Text(operatorName, style: theme.textTheme.muted)),
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: online == null
-                              ? theme.colorScheme.mutedForeground
-                              : online
-                                  ? const Color(0xFF34D399)
-                                  : theme.colorScheme.destructive,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        online == false ? t.dashboard.offline : t.dashboard.online,
-                        style: theme.textTheme.muted,
-                      ),
-                    ],
-                  ),
+                child: Row(
+                  children: [
+                    _TabButton(
+                      icon: LucideIcons.layoutGrid,
+                      label: t.dashboard.modules,
+                      active: _tab == 0,
+                      onTap: () => setState(() => _tab = 0),
+                    ),
+                    _TabButton(
+                      icon: LucideIcons.user,
+                      label: t.dashboard.tabAccount,
+                      active: _tab == 1,
+                      onTap: () => setState(() => _tab = 1),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TabButton extends StatelessWidget {
+  const _TabButton({required this.icon, required this.label, required this.active, required this.onTap});
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    final color = active ? theme.colorScheme.primary : theme.colorScheme.mutedForeground;
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(height: 4),
+              Text(label, style: theme.textTheme.small.copyWith(color: color, fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Konto: who's signed in, whether wpsApi is reachable right now, and the
+/// way out (logout - GoRouter's redirect sends the app back to /login).
+class _AccountView extends ConsumerWidget {
+  const _AccountView();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ShadTheme.of(context);
+    final t = context.t;
+    final settings = ref.watch(appSettingsProvider).value;
+    final online = ref.watch(serverOnlineProvider).value;
+
+    Widget row(String label, Widget value) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            children: [
+              Expanded(child: Text(label, style: theme.textTheme.muted)),
+              value,
+            ],
+          ),
+        );
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+      children: [
+        row(t.dashboard.account.operator, Text(settings?.operatorName ?? '', style: theme.textTheme.p)),
+        Container(height: 1, color: theme.colorScheme.border),
+        row(
+          t.dashboard.account.status,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: online == null
+                      ? theme.colorScheme.mutedForeground
+                      : online
+                          ? const Color(0xFF34D399)
+                          : theme.colorScheme.destructive,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(online == false ? t.dashboard.offline : t.dashboard.online, style: theme.textTheme.p),
+            ],
+          ),
+        ),
+        Container(height: 1, color: theme.colorScheme.border),
+        row(t.dashboard.account.server, Text(settings?.apiBaseUrl ?? '', style: theme.textTheme.p)),
+        const SizedBox(height: 28),
+        ShadButton.outline(
+          onPressed: () => ref.read(appSettingsProvider.notifier).logout(),
+          leading: Icon(LucideIcons.logOut, size: 18),
+          child: Text(t.settings.logout),
+        ),
+      ],
     );
   }
 }

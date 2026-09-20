@@ -48,6 +48,13 @@
     "online": "Online",
     "offline": "Offline",
     "modules": "Moduły",
+    "tabAccount": "Konto",
+    "account": {
+      "title": "Informacje o koncie",
+      "operator": "Numer pracownika",
+      "status": "Status",
+      "server": "Serwer"
+    },
     "materialsSm": {
       "title": "Materiały SM",
       "subtitle": "Przyjęcia i wydania"
