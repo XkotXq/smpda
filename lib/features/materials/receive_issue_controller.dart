@@ -198,6 +198,13 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     state = state.copyWith(current: op);
   }
 
+  void updateLocation(String value) {
+    final op = state.current;
+    if (op is! ReceiveOperation) return;
+    op.location = value;
+    state = state.copyWith(current: op);
+  }
+
   void updateUnitId(String value) {
     final op = state.current;
     if (op is! ReceiveOperation) return;
@@ -259,8 +266,12 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
           ]);
         }
 
+        final location = op.location.trim();
+        if (location.isNotEmpty) item = item.copyWith(locationCode: location);
+
         operation = SmOperation(
           operation: 'receipt',
+          location: location.isEmpty ? null : location,
           itemNo: op.itemNo,
           itemName: op.itemName,
           unitId: unitId.isEmpty ? null : unitId,

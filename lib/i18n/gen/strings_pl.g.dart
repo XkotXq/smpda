@@ -184,6 +184,10 @@ class Translations$dashboard$pl {
 	final Translations _root; // ignore: unused_field
 
 	// Translations
+
+	/// pl: 'Moduły'
+	String get modules => 'Moduły';
+
 	late final Translations$dashboard$materialsSm$pl materialsSm = Translations$dashboard$materialsSm$pl._(_root);
 	late final Translations$dashboard$frp$pl frp = Translations$dashboard$frp$pl._(_root);
 }
@@ -247,8 +251,8 @@ class Translations$dashboard$frp$pl {
 	/// pl: 'FRP'
 	String get title => 'FRP';
 
-	/// pl: 'Kontrola materiałów FRP'
-	String get subtitle => 'Kontrola materiałów FRP';
+	/// pl: 'Oznaczenie numerów szpul'
+	String get subtitle => 'Oznaczenie numerów szpul';
 }
 
 /// The flat map containing all translations for locale <pl>.
@@ -293,10 +297,11 @@ extension on Translations {
 			'operations.pickUnit' => ({required Object unitId}) => 'Jednostka ${unitId}',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
+			'dashboard.modules' => 'Moduły',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',
 			'dashboard.frp.title' => 'FRP',
-			'dashboard.frp.subtitle' => 'Kontrola materiałów FRP',
+			'dashboard.frp.subtitle' => 'Oznaczenie numerów szpul',
 			'frp.placeholder' => 'Sekcja FRP jest w budowie.',
 			_ => null,
 		};

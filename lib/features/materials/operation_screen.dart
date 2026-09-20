@@ -23,6 +23,7 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
   final _quantityController = TextEditingController();
   final _quantityFocusNode = FocusNode();
   final _unitIdController = TextEditingController();
+  final _locationController = TextEditingController();
 
   @override
   void initState() {
@@ -30,6 +31,7 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
     final op = ref.read(receiveIssueControllerProvider).current;
     _quantityController.text = op?.quantity ?? '';
     _unitIdController.text = op is ReceiveOperation ? op.unitId : '';
+    _locationController.text = op is ReceiveOperation ? op.location : '';
   }
 
   @override
@@ -37,6 +39,7 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
     _quantityController.dispose();
     _quantityFocusNode.dispose();
     _unitIdController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
@@ -113,6 +116,7 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
                   quantityController: _quantityController,
                   quantityFocusNode: _quantityFocusNode,
                   unitIdController: _unitIdController,
+                  locationController: _locationController,
                 ),
               ),
             ),
@@ -148,12 +152,14 @@ class _OperationFields extends ConsumerWidget {
     required this.quantityController,
     required this.quantityFocusNode,
     required this.unitIdController,
+    required this.locationController,
   });
 
   final CurrentOperation op;
   final TextEditingController quantityController;
   final FocusNode quantityFocusNode;
   final TextEditingController unitIdController;
+  final TextEditingController locationController;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -172,6 +178,10 @@ class _OperationFields extends ConsumerWidget {
             label: t.operations.quantityLabel,
             onChanged: controller.updateQuantity,
           ),
+          const SizedBox(height: 20),
+          Text(t.operations.location, style: theme.textTheme.small, textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          ShadInput(controller: locationController, onChanged: controller.updateLocation, textAlign: TextAlign.center),
           if (receiveOp.trackedIndividually) ...[
             const SizedBox(height: 20),
             Text(t.operations.unitOptional, style: theme.textTheme.small, textAlign: TextAlign.center),
@@ -197,7 +207,7 @@ class _OperationFields extends ConsumerWidget {
       children: [
         Text(op.itemNo, style: theme.textTheme.h3),
         Text(op.itemName, style: theme.textTheme.muted),
-        if (op.locationCode.isNotEmpty) ...[
+        if (op is! ReceiveOperation && op.locationCode.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text('${t.operations.location}: ${op.locationCode}', style: theme.textTheme.muted),
         ],

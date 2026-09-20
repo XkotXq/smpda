@@ -39,12 +39,17 @@ class ReceiveOperation extends CurrentOperation {
     required this.trackedIndividually,
     this.quantity = '',
     this.unitId = '',
-  });
+  }) : location = locationCode;
 
   final bool trackedIndividually;
   @override
   String quantity;
   String unitId;
+
+  /// Editable location the item is received to - starts as its current
+  /// location (blank for a brand-new catalog item) and, when non-blank,
+  /// replaces sm_items.locationCode on submit.
+  String location;
 }
 
 /// [kind] decides what [unitId]/[available]/[quantity] mean:

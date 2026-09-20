@@ -44,13 +44,14 @@
     "toastNotIssuable": "No available quantity of this material to issue."
   },
   "dashboard": {
+    "modules": "Modules",
     "materialsSm": {
       "title": "Materiały SM",
       "subtitle": "Receipts and issues"
     },
     "frp": {
       "title": "FRP",
-      "subtitle": "FRP material checks"
+      "subtitle": "Spool number marking"
     }
   },
   "frp": {

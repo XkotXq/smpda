@@ -88,9 +88,25 @@ class DashboardScreen extends StatelessWidget {
               Expanded(
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
-                  itemCount: tiles.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) => _DashboardRow(number: index + 1, tile: tiles[index]),
+                  itemCount: tiles.length + 1,
+                  separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 8 : 10),
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 2),
+                        child: Text(
+                          t.dashboard.modules.toUpperCase(),
+                          style: theme.textTheme.small.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.2,
+                            color: theme.colorScheme.mutedForeground,
+                          ),
+                        ),
+                      );
+                    }
+                    return _DashboardRow(number: index, tile: tiles[index - 1]);
+                  },
                 ),
               ),
             ],
@@ -118,16 +134,16 @@ class _DashboardRow extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: tile.onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
               children: [
                 Container(
-                  width: 26,
-                  height: 26,
+                  width: 36,
+                  height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: theme.colorScheme.muted,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '$number',
@@ -137,23 +153,25 @@ class _DashboardRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
-                Icon(tile.icon, size: 26, color: theme.colorScheme.primary),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
+                Icon(tile.icon, size: 24, color: theme.colorScheme.primary),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(tile.title, style: theme.textTheme.h4),
+                      const SizedBox(height: 2),
                       Text(
                         tile.subtitle,
                         style: theme.textTheme.muted,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
+                Icon(LucideIcons.chevronRight, size: 18, color: theme.colorScheme.mutedForeground),
               ],
             ),
           ),

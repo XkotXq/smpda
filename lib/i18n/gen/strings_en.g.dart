@@ -120,6 +120,7 @@ class _Translations$dashboard$en implements Translations$dashboard$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
+	@override String get modules => 'Modules';
 	@override late final _Translations$dashboard$materialsSm$en materialsSm = _Translations$dashboard$materialsSm$en._(_root);
 	@override late final _Translations$dashboard$frp$en frp = _Translations$dashboard$frp$en._(_root);
 }
@@ -166,7 +167,7 @@ class _Translations$dashboard$frp$en implements Translations$dashboard$frp$pl {
 
 	// Translations
 	@override String get title => 'FRP';
-	@override String get subtitle => 'FRP material checks';
+	@override String get subtitle => 'Spool number marking';
 }
 
 /// The flat map containing all translations for locale <en>.
@@ -211,10 +212,11 @@ extension on TranslationsEn {
 			'operations.pickUnit' => ({required Object unitId}) => 'Unit ${unitId}',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
+			'dashboard.modules' => 'Modules',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',
 			'dashboard.frp.title' => 'FRP',
-			'dashboard.frp.subtitle' => 'FRP material checks',
+			'dashboard.frp.subtitle' => 'Spool number marking',
 			'frp.placeholder' => 'The FRP section is under construction.',
 			_ => null,
 		};

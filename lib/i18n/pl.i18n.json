@@ -44,13 +44,14 @@
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania."
   },
   "dashboard": {
+    "modules": "Moduły",
     "materialsSm": {
       "title": "Materiały SM",
       "subtitle": "Przyjęcia i wydania"
     },
     "frp": {
       "title": "FRP",
-      "subtitle": "Kontrola materiałów FRP"
+      "subtitle": "Oznaczenie numerów szpul"
     }
   },
   "frp": {
