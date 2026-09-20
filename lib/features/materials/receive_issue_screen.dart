@@ -25,7 +25,6 @@ class ReceiveIssueScreen extends ConsumerStatefulWidget {
 
 class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
   final _manualEntryController = TextEditingController();
-  final _manualEntryFocusNode = FocusNode();
   StreamSubscription<String>? _scanSub;
   StreamSubscription<Object>? _errorSub;
 
@@ -59,7 +58,7 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     final outcome = ref.read(receiveIssueControllerProvider.notifier).scan(code);
     switch (outcome) {
       case ScanStarted():
-        context.push(materialsSmOperationPath).then((_) => _manualEntryFocusNode.requestFocus());
+        context.push(materialsSmOperationPath);
       case ScanNotIssuable():
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastNotIssuable)));
       case ScanUnknown():
@@ -152,7 +151,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     );
     if (!mounted || !picked) return;
     await context.push(materialsSmOperationPath);
-    if (mounted) _manualEntryFocusNode.requestFocus();
   }
 
   @override
@@ -160,7 +158,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     _scanSub?.cancel();
     _errorSub?.cancel();
     _manualEntryController.dispose();
-    _manualEntryFocusNode.dispose();
     super.dispose();
   }
 
@@ -180,8 +177,6 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
               Expanded(
                 child: ShadInput(
                   controller: _manualEntryController,
-                  focusNode: _manualEntryFocusNode,
-                  autofocus: true,
                   placeholder: Text(t.operations.scanPlaceholder),
                   onSubmitted: (_) => _submitManualEntry(),
                 ),
