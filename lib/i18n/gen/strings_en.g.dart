@@ -160,7 +160,7 @@ class _Translations$dashboard$account$en implements Translations$dashboard$accou
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get title => 'Account information';
+	@override String get title => 'Account';
 	@override String get operator => 'Employee number';
 	@override String get status => 'Status';
 	@override String get server => 'Server';
@@ -235,7 +235,7 @@ extension on TranslationsEn {
 			'dashboard.offline' => 'Offline',
 			'dashboard.modules' => 'Modules',
 			'dashboard.tabAccount' => 'Account',
-			'dashboard.account.title' => 'Account information',
+			'dashboard.account.title' => 'Account',
 			'dashboard.account.operator' => 'Employee number',
 			'dashboard.account.status' => 'Status',
 			'dashboard.account.server' => 'Server',

@@ -90,11 +90,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Expanded(
                       child: Text(
                         _tab == 0 ? t.dashboard.appTitle : t.dashboard.account.title,
-                        style: theme.textTheme.h2.copyWith(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.5,
-                          fontSize: _tab == 0 ? null : 26,
-                        ),
+                        style: theme.textTheme.h2.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
                       ),
                     ),
                     ShadButton.ghost(

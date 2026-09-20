@@ -246,8 +246,8 @@ class Translations$dashboard$account$pl {
 
 	// Translations
 
-	/// pl: 'Informacje o koncie'
-	String get title => 'Informacje o koncie';
+	/// pl: 'Konto'
+	String get title => 'Konto';
 
 	/// pl: 'Numer pracownika'
 	String get operator => 'Numer pracownika';
@@ -336,7 +336,7 @@ extension on Translations {
 			'dashboard.offline' => 'Offline',
 			'dashboard.modules' => 'Moduły',
 			'dashboard.tabAccount' => 'Konto',
-			'dashboard.account.title' => 'Informacje o koncie',
+			'dashboard.account.title' => 'Konto',
 			'dashboard.account.operator' => 'Numer pracownika',
 			'dashboard.account.status' => 'Status',
 			'dashboard.account.server' => 'Serwer',

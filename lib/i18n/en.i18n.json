@@ -50,7 +50,7 @@
     "modules": "Modules",
     "tabAccount": "Account",
     "account": {
-      "title": "Account information",
+      "title": "Account",
       "operator": "Employee number",
       "status": "Status",
       "server": "Server"
