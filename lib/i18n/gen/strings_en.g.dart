@@ -97,6 +97,9 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get modeIssue => 'Issue';
 	@override String get scanPlaceholder => 'Scan or type a code';
 	@override String get location => 'Location';
+	@override String get material => 'Material';
+	@override String get onStock => 'In stock';
+	@override String get issueQuantity => 'Issue quantity';
 	@override String get unitLabel => 'Spool';
 	@override String get unitOptional => 'Spool number (blank = unmarked)';
 	@override String get quantityLabel => 'Quantity';
@@ -215,6 +218,9 @@ extension on TranslationsEn {
 			'operations.modeIssue' => 'Issue',
 			'operations.scanPlaceholder' => 'Scan or type a code',
 			'operations.location' => 'Location',
+			'operations.material' => 'Material',
+			'operations.onStock' => 'In stock',
+			'operations.issueQuantity' => 'Issue quantity',
 			'operations.unitLabel' => 'Spool',
 			'operations.unitOptional' => 'Spool number (blank = unmarked)',
 			'operations.quantityLabel' => 'Quantity',

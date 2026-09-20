@@ -109,39 +109,163 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: _OperationFields(
-                  op: op,
-                  quantityController: _quantityController,
-                  quantityFocusNode: _quantityFocusNode,
-                  unitIdController: _unitIdController,
-                  locationController: _locationController,
-                ),
-              ),
-            ),
-            SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Row(
-                  children: [
-                    ShadButton.outline(onPressed: state.submitting ? null : _cancel, child: Text(t.operations.cancel)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ShadButton(
-                        enabled: !state.submitting,
-                        onPressed: state.submitting ? null : _confirm,
-                        child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
+              child: op is IssueOperation
+                  ? _IssueBody(op: op, quantityController: _quantityController, quantityFocusNode: _quantityFocusNode)
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: _OperationFields(
+                        op: op,
+                        quantityController: _quantityController,
+                        quantityFocusNode: _quantityFocusNode,
+                        unitIdController: _unitIdController,
+                        locationController: _locationController,
                       ),
                     ),
-                  ],
+            ),
+            if (op is IssueOperation)
+              DecoratedBox(
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: theme.colorScheme.border))),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+                    child: ShadButton(
+                      width: double.infinity,
+                      enabled: !state.submitting,
+                      onPressed: state.submitting ? null : _confirm,
+                      leading: state.submitting ? null : const Icon(LucideIcons.check, size: 18),
+                      child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
+                    ),
+                  ),
+                ),
+              )
+            else
+              SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Row(
+                    children: [
+                      ShadButton.outline(
+                        onPressed: state.submitting ? null : _cancel,
+                        child: Text(t.operations.cancel),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ShadButton(
+                          enabled: !state.submitting,
+                          onPressed: state.submitting ? null : _confirm,
+                          child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Wydanie: what's being issued (item number, name, where it is, how much
+/// is on hand) on top, and the quantity to issue as the one big thing in
+/// the middle - a large centered number with an accent underline.
+class _IssueBody extends ConsumerWidget {
+  const _IssueBody({required this.op, required this.quantityController, required this.quantityFocusNode});
+
+  final IssueOperation op;
+  final TextEditingController quantityController;
+  final FocusNode quantityFocusNode;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ShadTheme.of(context);
+    final t = context.t;
+    final controller = ref.read(receiveIssueControllerProvider.notifier);
+    final bigStyle = theme.textTheme.h1.copyWith(fontSize: 72, fontWeight: FontWeight.w700, height: 1.1);
+    final divider = Container(height: 1, color: theme.colorScheme.border);
+
+    Widget stat(String label, String value) => Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: theme.textTheme.muted.copyWith(fontSize: 14)),
+              const SizedBox(height: 4),
+              Text(value, style: theme.textTheme.p.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+            ],
+          ),
+        );
+
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(t.operations.material, style: theme.textTheme.muted.copyWith(fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(op.itemNo, style: theme.textTheme.h3.copyWith(fontSize: 24, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 2),
+                    Text(op.itemName, style: theme.textTheme.muted.copyWith(fontSize: 18)),
+                  ],
+                ),
+              ),
+              divider,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    stat(t.operations.location, op.locationCode.isEmpty ? '-' : op.locationCode),
+                    stat(t.operations.onStock, op.available),
+                    if (op.kind == IssueKind.unit) stat(t.operations.unitLabel, op.unitId ?? ''),
+                  ],
+                ),
+              ),
+              divider,
+            ],
+          ),
+        ),
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(t.operations.issueQuantity, style: theme.textTheme.muted.copyWith(fontSize: 14)),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: 240,
+                    child: op.kind == IssueKind.unit
+                        ? Text(op.quantity, textAlign: TextAlign.center, style: bigStyle)
+                        : ShadInput(
+                            controller: quantityController,
+                            focusNode: quantityFocusNode,
+                            autofocus: true,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            onChanged: controller.updateQuantity,
+                            textAlign: TextAlign.center,
+                            style: bigStyle,
+                            padding: EdgeInsets.zero,
+                            decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                          ),
+                  ),
+                  Container(width: 240, height: 2, color: theme.colorScheme.primary),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

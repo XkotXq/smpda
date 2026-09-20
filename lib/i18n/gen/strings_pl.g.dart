@@ -134,6 +134,15 @@ class Translations$operations$pl {
 	/// pl: 'Lokalizacja'
 	String get location => 'Lokalizacja';
 
+	/// pl: 'Materiał'
+	String get material => 'Materiał';
+
+	/// pl: 'Na stanie'
+	String get onStock => 'Na stanie';
+
+	/// pl: 'Ilość wydania'
+	String get issueQuantity => 'Ilość wydania';
+
 	/// pl: 'Szpula'
 	String get unitLabel => 'Szpula';
 
@@ -314,6 +323,9 @@ extension on Translations {
 			'operations.modeIssue' => 'Wydanie',
 			'operations.scanPlaceholder' => 'Zeskanuj lub wpisz kod',
 			'operations.location' => 'Lokalizacja',
+			'operations.material' => 'Materiał',
+			'operations.onStock' => 'Na stanie',
+			'operations.issueQuantity' => 'Ilość wydania',
 			'operations.unitLabel' => 'Szpula',
 			'operations.unitOptional' => 'Numer szpuli (puste = nieoznaczone)',
 			'operations.quantityLabel' => 'Ilość',
