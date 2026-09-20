@@ -55,6 +55,7 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
   void _handleCode(String code) {
     if (!mounted) return;
     final t = context.t;
+    FocusManager.instance.primaryFocus?.unfocus();
     final outcome = ref.read(receiveIssueControllerProvider.notifier).scan(code);
     switch (outcome) {
       case ScanStarted():
