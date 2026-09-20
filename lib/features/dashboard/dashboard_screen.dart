@@ -1,8 +1,11 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../core/api/server_status.dart';
+import '../../core/session/session_providers.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
 
@@ -27,23 +30,25 @@ final _digitKeys = {
   LogicalKeyboardKey.numpad9: 9,
 };
 
+
 /// First screen after login (GoRouter's own `redirect`, see router.dart,
 /// sends here once AppSettings.isLoggedIn) - a picker list for this app's
-/// sections. Only two rows exist right now (Materiały SM, FRP); add more
-/// here as sections get built rather than growing HomeShell's own bottom
-/// nav indefinitely.
+/// modules, with a status bar (operator + server reachability) at the
+/// bottom. Only two rows exist right now (Materiały SM, FRP).
 ///
 /// Each row shows its own list position (1, 2, ...) - a Honeywell PDA has
-/// physical number keys, so an operator can jump straight to a section
+/// physical number keys, so an operator can jump straight to a module
 /// without touching the screen at all. `Focus.onKeyEvent` below matches
 /// that digit against the row list, same index a screen tap would use.
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = ShadTheme.of(context);
     final t = context.t;
+    final operatorName = ref.watch(appSettingsProvider).value?.operatorName ?? '';
+    final online = ref.watch(serverOnlineProvider).value;
     final tiles = [
       (
         icon: LucideIcons.arrowLeftRight,
@@ -74,39 +79,71 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+                padding: const EdgeInsets.fromLTRB(20, 20, 12, 8),
                 child: Row(
                   children: [
-                    Expanded(child: Text('SM', style: theme.textTheme.h3)),
+                    Expanded(
+                      child: Text(
+                        t.dashboard.appTitle,
+                        style: theme.textTheme.h2.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+                      ),
+                    ),
                     ShadButton.ghost(
                       onPressed: () => context.push(settingsPath),
-                      child: const Icon(LucideIcons.settings),
+                      child: Icon(LucideIcons.settings, color: theme.colorScheme.primary),
                     ),
                   ],
                 ),
               ),
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: tiles.length + 1,
-                  separatorBuilder: (_, index) => SizedBox(height: index == 0 ? 8 : 10),
-                  itemBuilder: (context, index) {
-                    if (index == 0) {
-                      return Padding(
-                        padding: const EdgeInsets.only(left: 2),
-                        child: Text(
-                          t.dashboard.modules.toUpperCase(),
-                          style: theme.textTheme.small.copyWith(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 1.2,
-                            color: theme.colorScheme.mutedForeground,
-                          ),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                  children: [
+                    Text(
+                      t.dashboard.modules.toUpperCase(),
+                      style: theme.textTheme.small.copyWith(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.2,
+                        color: theme.colorScheme.mutedForeground,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    for (var i = 0; i < tiles.length; i++) ...[
+                      if (i > 0) Container(height: 1, color: theme.colorScheme.border),
+                      _DashboardRow(number: i + 1, tile: tiles[i]),
+                    ],
+                  ],
+                ),
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(border: Border(top: BorderSide(color: theme.colorScheme.border))),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  child: Row(
+                    children: [
+                      Icon(LucideIcons.user, size: 18, color: theme.colorScheme.mutedForeground),
+                      const SizedBox(width: 10),
+                      Expanded(child: Text(operatorName, style: theme.textTheme.muted)),
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: online == null
+                              ? theme.colorScheme.mutedForeground
+                              : online
+                                  ? const Color(0xFF34D399)
+                                  : theme.colorScheme.destructive,
                         ),
-                      );
-                    }
-                    return _DashboardRow(number: index, tile: tiles[index - 1]);
-                  },
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        online == false ? t.dashboard.offline : t.dashboard.online,
+                        style: theme.textTheme.muted,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -126,55 +163,38 @@ class _DashboardRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
-    return ShadCard(
-      padding: EdgeInsets.zero,
-      child: ClipRRect(
-        borderRadius: theme.radius,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: tile.onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.muted,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    '$number',
-                    style: theme.textTheme.small.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.mutedForeground,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Icon(tile.icon, size: 24, color: theme.colorScheme.primary),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(tile.title, style: theme.textTheme.h4),
-                      const SizedBox(height: 2),
-                      Text(
-                        tile.subtitle,
-                        style: theme.textTheme.muted,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(LucideIcons.chevronRight, size: 18, color: theme.colorScheme.mutedForeground),
-              ],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: tile.onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(color: theme.colorScheme.muted, borderRadius: BorderRadius.circular(10)),
+              child: Text(
+                '$number',
+                style: theme.textTheme.p.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.mutedForeground),
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Icon(tile.icon, size: 26, color: theme.colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tile.title, style: theme.textTheme.h4),
+                  const SizedBox(height: 2),
+                  Text(tile.subtitle, style: theme.textTheme.muted.copyWith(fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            Icon(LucideIcons.chevronRight, size: 18, color: theme.colorScheme.mutedForeground),
+          ],
         ),
       ),
     );

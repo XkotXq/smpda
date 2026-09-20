@@ -185,6 +185,15 @@ class Translations$dashboard$pl {
 
 	// Translations
 
+	/// pl: 'Stock Manager'
+	String get appTitle => 'Stock Manager';
+
+	/// pl: 'Online'
+	String get online => 'Online';
+
+	/// pl: 'Offline'
+	String get offline => 'Offline';
+
 	/// pl: 'Moduły'
 	String get modules => 'Moduły';
 
@@ -297,6 +306,9 @@ extension on Translations {
 			'operations.pickUnit' => ({required Object unitId}) => 'Jednostka ${unitId}',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
+			'dashboard.appTitle' => 'Stock Manager',
+			'dashboard.online' => 'Online',
+			'dashboard.offline' => 'Offline',
 			'dashboard.modules' => 'Moduły',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',

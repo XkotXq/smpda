@@ -120,6 +120,9 @@ class _Translations$dashboard$en implements Translations$dashboard$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
+	@override String get appTitle => 'Stock Manager';
+	@override String get online => 'Online';
+	@override String get offline => 'Offline';
 	@override String get modules => 'Modules';
 	@override late final _Translations$dashboard$materialsSm$en materialsSm = _Translations$dashboard$materialsSm$en._(_root);
 	@override late final _Translations$dashboard$frp$en frp = _Translations$dashboard$frp$en._(_root);
@@ -212,6 +215,9 @@ extension on TranslationsEn {
 			'operations.pickUnit' => ({required Object unitId}) => 'Unit ${unitId}',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
+			'dashboard.appTitle' => 'Stock Manager',
+			'dashboard.online' => 'Online',
+			'dashboard.offline' => 'Offline',
 			'dashboard.modules' => 'Modules',
 			'dashboard.materialsSm.title' => 'Materiały SM',
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',

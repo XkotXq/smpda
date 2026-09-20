@@ -44,6 +44,9 @@
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania."
   },
   "dashboard": {
+    "appTitle": "Stock Manager",
+    "online": "Online",
+    "offline": "Offline",
     "modules": "Moduły",
     "materialsSm": {
       "title": "Materiały SM",
