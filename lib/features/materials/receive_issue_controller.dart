@@ -15,18 +15,22 @@ class ReceiveIssueState {
   const ReceiveIssueState({
     this.mode = FlowMode.receive,
     this.current,
+    this.pick,
     this.submitting = false,
     this.error,
   });
 
   final FlowMode mode;
   final CurrentOperation? current;
+  final SpoolPick? pick;
   final bool submitting;
   final String? error;
 
   ReceiveIssueState copyWith({
     CurrentOperation? current,
     bool clearCurrent = false,
+    SpoolPick? pick,
+    bool clearPick = false,
     bool? submitting,
     String? error,
     bool clearError = false,
@@ -34,6 +38,7 @@ class ReceiveIssueState {
     return ReceiveIssueState(
       mode: mode,
       current: clearCurrent ? null : (current ?? this.current),
+      pick: clearPick ? null : (pick ?? this.pick),
       submitting: submitting ?? this.submitting,
       error: clearError ? null : (error ?? this.error),
     );
@@ -111,26 +116,30 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     ];
     if (leaves.isEmpty) return ScanNotIssuable();
 
-    if (leaves.length == 1) {
-      final leaf = leaves.first;
+    // Nothing but the unmarked remainder: no spool to choose, straight to
+    // typing how much of it to issue.
+    if (item.units.isEmpty) {
       _setCurrent(IssueOperation(
         itemNo: item.itemNo,
         itemName: item.itemName,
         locationCode: item.locationCode,
-        kind: leaf.kind,
-        available: leaf.quantity,
-        unitId: leaf.unitId,
+        kind: IssueKind.pending,
+        available: item.pendingQuantity!,
       ));
       return ScanStarted();
     }
 
-    return ScanNeedsPick(
-      item.itemNo,
-      item.itemName,
-      item.locationCode,
-      [for (final unit in item.units) (unitId: unit.unitId, quantity: unit.quantity)],
-      item.hasPendingQuantity ? item.pendingQuantity : null,
+    state = state.copyWith(
+      pick: SpoolPick(
+        itemNo: item.itemNo,
+        itemName: item.itemName,
+        locationCode: item.locationCode,
+        units: [for (final unit in item.units) (unitId: unit.unitId, quantity: unit.quantity)],
+        pendingQuantity: item.hasPendingQuantity ? item.pendingQuantity : null,
+      ),
+      clearError: true,
     );
+    return ScanNeedsPick();
   }
 
   ScanOutcome _scanForReceive(String code) {
@@ -159,23 +168,45 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     return ScanUnknown();
   }
 
-  /// Called once the operator resolves a ScanNeedsPick from the picker sheet.
-  void pickIssueLeaf({
-    required String itemNo,
-    required String itemName,
-    required String locationCode,
-    required IssueKind kind,
-    required String available,
-    String? unitId,
-  }) {
+  void cancelPick() {
+    state = state.copyWith(clearPick: true, clearError: true);
+  }
+
+  /// "Brak numeru szpuli": issue from the unmarked remainder instead of a
+  /// spool - it can be issued partially, so this hands over to the normal
+  /// quantity screen (OperationScreen) rather than issuing right away.
+  void startPendingIssue() {
+    final pick = state.pick;
+    if (pick == null || pick.pendingQuantity == null) return;
+    state = state.copyWith(
+      current: IssueOperation(
+        itemNo: pick.itemNo,
+        itemName: pick.itemName,
+        locationCode: pick.locationCode,
+        kind: IssueKind.pending,
+        available: pick.pendingQuantity!,
+      ),
+      clearPick: true,
+      clearError: true,
+    );
+  }
+
+  /// Issues the chosen spool in full, right away (a spool is always issued
+  /// whole - there's no quantity to type). Returns like [submit].
+  Future<bool> issueSpool(String unitId) {
+    final pick = state.pick;
+    if (pick == null) return Future.value(false);
+    final unit = pick.units.where((u) => u.unitId == unitId).firstOrNull;
+    if (unit == null) return Future.value(false);
     _setCurrent(IssueOperation(
-      itemNo: itemNo,
-      itemName: itemName,
-      locationCode: locationCode,
-      kind: kind,
-      available: available,
+      itemNo: pick.itemNo,
+      itemName: pick.itemName,
+      locationCode: pick.locationCode,
+      kind: IssueKind.unit,
+      available: unit.quantity,
       unitId: unitId,
     ));
+    return submit();
   }
 
   void _setCurrent(CurrentOperation op) {

@@ -63,94 +63,9 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastNotIssuable)));
       case ScanUnknown():
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
-      case ScanNeedsPick(:final itemNo, :final itemName, :final locationCode, :final units, :final pendingQuantity):
-        _openPicker(
-          itemNo: itemNo,
-          itemName: itemName,
-          locationCode: locationCode,
-          units: units,
-          pendingQuantity: pendingQuantity,
-        );
+      case ScanNeedsPick():
+        context.push(materialsSmSpoolsPath);
     }
-  }
-
-  Future<void> _openPicker({
-    required String itemNo,
-    required String itemName,
-    required String locationCode,
-    required List<({String unitId, String quantity})> units,
-    required String? pendingQuantity,
-  }) async {
-    final t = context.t;
-    var picked = false;
-    await showShadSheet<void>(
-      context: context,
-      side: ShadSheetSide.bottom,
-      builder: (sheetContext) {
-        final theme = ShadTheme.of(sheetContext);
-        return ShadSheet(
-          title: Text(itemName),
-          description: Text(itemNo),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (final unit in units)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: ShadButton.outline(
-                    onPressed: () {
-                      ref.read(receiveIssueControllerProvider.notifier).pickIssueLeaf(
-                            itemNo: itemNo,
-                            itemName: itemName,
-                            locationCode: locationCode,
-                            kind: IssueKind.unit,
-                            available: unit.quantity,
-                            unitId: unit.unitId,
-                          );
-                      picked = true;
-                      Navigator.of(sheetContext).pop();
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(t.operations.pickUnit(unitId: unit.unitId)),
-                        Text(unit.quantity, style: theme.textTheme.muted),
-                      ],
-                    ),
-                  ),
-                ),
-              if (pendingQuantity != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: ShadButton.outline(
-                    onPressed: () {
-                      ref.read(receiveIssueControllerProvider.notifier).pickIssueLeaf(
-                            itemNo: itemNo,
-                            itemName: itemName,
-                            locationCode: locationCode,
-                            kind: IssueKind.pending,
-                            available: pendingQuantity,
-                          );
-                      picked = true;
-                      Navigator.of(sheetContext).pop();
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(t.operations.pickPending),
-                        Text(pendingQuantity, style: theme.textTheme.muted),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-    if (!mounted || !picked) return;
-    await context.push(materialsSmOperationPath);
   }
 
   @override

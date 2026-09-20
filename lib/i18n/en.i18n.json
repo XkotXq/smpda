@@ -31,6 +31,8 @@
     "material": "Material",
     "onStock": "In stock",
     "issueQuantity": "Issue quantity",
+    "pickSpool": "Choose a spool number",
+    "noSpoolNumber": "No spool number",
     "unitLabel": "Spool",
     "unitOptional": "Spool number (blank = unmarked)",
     "quantityLabel": "Quantity",
@@ -39,9 +41,6 @@
     "cancel": "Cancel",
     "submitting": "Saving...",
     "submitted": "Saved.",
-    "pickTitle": "Choose what to issue",
-    "pickPending": "Unmarked",
-    "pickUnit": "Spool {unitId}",
     "toastUnknown": "Unknown code - no matching material or unit.",
     "toastNotIssuable": "No available quantity of this material to issue."
   },

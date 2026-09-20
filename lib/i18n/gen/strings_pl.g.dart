@@ -143,6 +143,12 @@ class Translations$operations$pl {
 	/// pl: 'Ilość wydania'
 	String get issueQuantity => 'Ilość wydania';
 
+	/// pl: 'Wybierz numer szpuli'
+	String get pickSpool => 'Wybierz numer szpuli';
+
+	/// pl: 'Brak numeru szpuli'
+	String get noSpoolNumber => 'Brak numeru szpuli';
+
 	/// pl: 'Szpula'
 	String get unitLabel => 'Szpula';
 
@@ -166,15 +172,6 @@ class Translations$operations$pl {
 
 	/// pl: 'Zapisano.'
 	String get submitted => 'Zapisano.';
-
-	/// pl: 'Wybierz co wydać'
-	String get pickTitle => 'Wybierz co wydać';
-
-	/// pl: 'Nieoznaczone'
-	String get pickPending => 'Nieoznaczone';
-
-	/// pl: 'Szpula {unitId}'
-	String pickUnit({required Object unitId}) => 'Szpula ${unitId}';
 
 	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
 	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
@@ -326,6 +323,8 @@ extension on Translations {
 			'operations.material' => 'Materiał',
 			'operations.onStock' => 'Na stanie',
 			'operations.issueQuantity' => 'Ilość wydania',
+			'operations.pickSpool' => 'Wybierz numer szpuli',
+			'operations.noSpoolNumber' => 'Brak numeru szpuli',
 			'operations.unitLabel' => 'Szpula',
 			'operations.unitOptional' => 'Numer szpuli (puste = nieoznaczone)',
 			'operations.quantityLabel' => 'Ilość',
@@ -334,9 +333,6 @@ extension on Translations {
 			'operations.cancel' => 'Anuluj',
 			'operations.submitting' => 'Zapisywanie...',
 			'operations.submitted' => 'Zapisano.',
-			'operations.pickTitle' => 'Wybierz co wydać',
-			'operations.pickPending' => 'Nieoznaczone',
-			'operations.pickUnit' => ({required Object unitId}) => 'Szpula ${unitId}',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'dashboard.appTitle' => 'Stock Manager',

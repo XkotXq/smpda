@@ -31,6 +31,8 @@
     "material": "Materiał",
     "onStock": "Na stanie",
     "issueQuantity": "Ilość wydania",
+    "pickSpool": "Wybierz numer szpuli",
+    "noSpoolNumber": "Brak numeru szpuli",
     "unitLabel": "Szpula",
     "unitOptional": "Numer szpuli (puste = nieoznaczone)",
     "quantityLabel": "Ilość",
@@ -39,9 +41,6 @@
     "cancel": "Anuluj",
     "submitting": "Zapisywanie...",
     "submitted": "Zapisano.",
-    "pickTitle": "Wybierz co wydać",
-    "pickPending": "Nieoznaczone",
-    "pickUnit": "Szpula {unitId}",
     "toastUnknown": "Nieznany kod - nie znaleziono materiału ani jednostki.",
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania."
   },

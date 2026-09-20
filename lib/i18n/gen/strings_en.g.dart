@@ -100,6 +100,8 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get material => 'Material';
 	@override String get onStock => 'In stock';
 	@override String get issueQuantity => 'Issue quantity';
+	@override String get pickSpool => 'Choose a spool number';
+	@override String get noSpoolNumber => 'No spool number';
 	@override String get unitLabel => 'Spool';
 	@override String get unitOptional => 'Spool number (blank = unmarked)';
 	@override String get quantityLabel => 'Quantity';
@@ -108,9 +110,6 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get cancel => 'Cancel';
 	@override String get submitting => 'Saving...';
 	@override String get submitted => 'Saved.';
-	@override String get pickTitle => 'Choose what to issue';
-	@override String get pickPending => 'Unmarked';
-	@override String pickUnit({required Object unitId}) => 'Spool ${unitId}';
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 }
@@ -221,6 +220,8 @@ extension on TranslationsEn {
 			'operations.material' => 'Material',
 			'operations.onStock' => 'In stock',
 			'operations.issueQuantity' => 'Issue quantity',
+			'operations.pickSpool' => 'Choose a spool number',
+			'operations.noSpoolNumber' => 'No spool number',
 			'operations.unitLabel' => 'Spool',
 			'operations.unitOptional' => 'Spool number (blank = unmarked)',
 			'operations.quantityLabel' => 'Quantity',
@@ -229,9 +230,6 @@ extension on TranslationsEn {
 			'operations.cancel' => 'Cancel',
 			'operations.submitting' => 'Saving...',
 			'operations.submitted' => 'Saved.',
-			'operations.pickTitle' => 'Choose what to issue',
-			'operations.pickPending' => 'Unmarked',
-			'operations.pickUnit' => ({required Object unitId}) => 'Spool ${unitId}',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'dashboard.appTitle' => 'Stock Manager',

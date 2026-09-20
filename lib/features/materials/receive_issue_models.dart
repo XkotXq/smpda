@@ -75,14 +75,27 @@ class IssueOperation extends CurrentOperation {
 }
 
 /// Returned by ReceiveIssueController.scan - the screen reacts to
-/// [ScanNeedsPick] by opening a bottom sheet instead of silently guessing
-/// which unit/pending remainder a bare item-number scan meant to issue.
+/// [ScanNeedsPick] by opening the spool picker (the details are in
+/// ReceiveIssueState.pick) instead of silently guessing which spool/
+/// unmarked remainder a bare item-number scan meant to issue.
 sealed class ScanOutcome {}
 
 class ScanStarted extends ScanOutcome {}
 
-class ScanNeedsPick extends ScanOutcome {
-  ScanNeedsPick(this.itemNo, this.itemName, this.locationCode, this.units, this.pendingQuantity);
+class ScanNeedsPick extends ScanOutcome {}
+
+/// What the spool picker screen lists: an item issued from numbered spools
+/// (plus, optionally, its still-unmarked remainder) - set by
+/// ReceiveIssueController.scan, cleared once a spool is issued or the
+/// operator backs out.
+class SpoolPick {
+  SpoolPick({
+    required this.itemNo,
+    required this.itemName,
+    required this.locationCode,
+    required this.units,
+    required this.pendingQuantity,
+  });
   final String itemNo;
   final String itemName;
   final String locationCode;
