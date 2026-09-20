@@ -191,9 +191,9 @@ class _IssueBody extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: theme.textTheme.muted.copyWith(fontSize: 14)),
+              Text(label, style: theme.textTheme.muted.copyWith(fontSize: 12)),
               const SizedBox(height: 4),
-              Text(value, style: theme.textTheme.p.copyWith(fontSize: 18, fontWeight: FontWeight.w700)),
+              Text(value, style: theme.textTheme.p.copyWith(fontSize: 16, fontWeight: FontWeight.w700)),
             ],
           ),
         );
@@ -209,11 +209,11 @@ class _IssueBody extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(t.operations.material, style: theme.textTheme.muted.copyWith(fontSize: 14)),
+                    Text(t.operations.material, style: theme.textTheme.muted.copyWith(fontSize: 12)),
                     const SizedBox(height: 4),
-                    Text(op.itemNo, style: theme.textTheme.h3.copyWith(fontSize: 24, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 2),
-                    Text(op.itemName, style: theme.textTheme.muted.copyWith(fontSize: 18)),
+                    Text(op.itemNo, style: theme.textTheme.h3.copyWith(fontSize: 20, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(op.itemName, style: theme.textTheme.muted.copyWith(fontSize: 16)),
                   ],
                 ),
               ),
