@@ -137,11 +137,11 @@ class Translations$operations$pl {
 	/// pl: 'Lokalizacja'
 	String get location => 'Lokalizacja';
 
-	/// pl: 'Nr jednostki'
-	String get unitLabel => 'Nr jednostki';
+	/// pl: 'Szpula'
+	String get unitLabel => 'Szpula';
 
-	/// pl: 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)'
-	String get unitOptional => 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)';
+	/// pl: 'Numer szpuli (puste = nieoznaczone)'
+	String get unitOptional => 'Numer szpuli (puste = nieoznaczone)';
 
 	/// pl: 'Ilość'
 	String get quantityLabel => 'Ilość';
@@ -164,11 +164,11 @@ class Translations$operations$pl {
 	/// pl: 'Wybierz co wydać'
 	String get pickTitle => 'Wybierz co wydać';
 
-	/// pl: 'Ilość nieprzypisana'
-	String get pickPending => 'Ilość nieprzypisana';
+	/// pl: 'Nieoznaczone'
+	String get pickPending => 'Nieoznaczone';
 
-	/// pl: 'Jednostka {unitId}'
-	String pickUnit({required Object unitId}) => 'Jednostka ${unitId}';
+	/// pl: 'Szpula {unitId}'
+	String pickUnit({required Object unitId}) => 'Szpula ${unitId}';
 
 	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
 	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
@@ -318,8 +318,8 @@ extension on Translations {
 			'operations.scanPlaceholder' => 'Zeskanuj lub wpisz kod',
 			'operations.idle' => 'Naciśnij spust skanera lub zeskanuj kod ręcznie, aby rozpocząć.',
 			'operations.location' => 'Lokalizacja',
-			'operations.unitLabel' => 'Nr jednostki',
-			'operations.unitOptional' => 'Nr jednostki (opcjonalnie - puste = ilość nieprzypisana)',
+			'operations.unitLabel' => 'Szpula',
+			'operations.unitOptional' => 'Numer szpuli (puste = nieoznaczone)',
 			'operations.quantityLabel' => 'Ilość',
 			'operations.available' => ({required Object value}) => 'Dostępne: ${value}',
 			'operations.confirm' => 'Zatwierdź',
@@ -327,8 +327,8 @@ extension on Translations {
 			'operations.submitting' => 'Zapisywanie...',
 			'operations.submitted' => 'Zapisano.',
 			'operations.pickTitle' => 'Wybierz co wydać',
-			'operations.pickPending' => 'Ilość nieprzypisana',
-			'operations.pickUnit' => ({required Object unitId}) => 'Jednostka ${unitId}',
+			'operations.pickPending' => 'Nieoznaczone',
+			'operations.pickUnit' => ({required Object unitId}) => 'Szpula ${unitId}',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'dashboard.appTitle' => 'Stock Manager',

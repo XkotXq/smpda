@@ -98,8 +98,8 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get scanPlaceholder => 'Scan or type a code';
 	@override String get idle => 'Pull the scanner trigger or scan a code manually to start.';
 	@override String get location => 'Location';
-	@override String get unitLabel => 'Unit no.';
-	@override String get unitOptional => 'Unit no. (optional - blank = unassigned quantity)';
+	@override String get unitLabel => 'Spool';
+	@override String get unitOptional => 'Spool number (blank = unmarked)';
 	@override String get quantityLabel => 'Quantity';
 	@override String available({required Object value}) => 'Available: ${value}';
 	@override String get confirm => 'Confirm';
@@ -107,8 +107,8 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get submitting => 'Saving...';
 	@override String get submitted => 'Saved.';
 	@override String get pickTitle => 'Choose what to issue';
-	@override String get pickPending => 'Unassigned quantity';
-	@override String pickUnit({required Object unitId}) => 'Unit ${unitId}';
+	@override String get pickPending => 'Unmarked';
+	@override String pickUnit({required Object unitId}) => 'Spool ${unitId}';
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 }
@@ -217,8 +217,8 @@ extension on TranslationsEn {
 			'operations.scanPlaceholder' => 'Scan or type a code',
 			'operations.idle' => 'Pull the scanner trigger or scan a code manually to start.',
 			'operations.location' => 'Location',
-			'operations.unitLabel' => 'Unit no.',
-			'operations.unitOptional' => 'Unit no. (optional - blank = unassigned quantity)',
+			'operations.unitLabel' => 'Spool',
+			'operations.unitOptional' => 'Spool number (blank = unmarked)',
 			'operations.quantityLabel' => 'Quantity',
 			'operations.available' => ({required Object value}) => 'Available: ${value}',
 			'operations.confirm' => 'Confirm',
@@ -226,8 +226,8 @@ extension on TranslationsEn {
 			'operations.submitting' => 'Saving...',
 			'operations.submitted' => 'Saved.',
 			'operations.pickTitle' => 'Choose what to issue',
-			'operations.pickPending' => 'Unassigned quantity',
-			'operations.pickUnit' => ({required Object unitId}) => 'Unit ${unitId}',
+			'operations.pickPending' => 'Unmarked',
+			'operations.pickUnit' => ({required Object unitId}) => 'Spool ${unitId}',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'dashboard.appTitle' => 'Stock Manager',
