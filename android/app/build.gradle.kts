@@ -44,6 +44,10 @@ kotlin {
     }
 }
 
+dependencies {
+    implementation(project(":honeywell"))
+}
+
 flutter {
     source = "../.."
 }

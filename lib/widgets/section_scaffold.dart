@@ -7,9 +7,12 @@ import 'section_header.dart';
 /// of its own (e.g. FrpScreen). HomeShell builds its own header+body+bottom-
 /// bar layout directly instead of using this, since it needs the extra row.
 class SectionScaffold extends StatelessWidget {
-  const SectionScaffold({super.key, required this.title, required this.body});
+  const SectionScaffold({super.key, required this.title, required this.body, this.actions = const []});
 
   final String title;
+
+  /// See [SectionHeader.actions].
+  final List<Widget> actions;
   final Widget body;
 
   @override
@@ -19,7 +22,7 @@ class SectionScaffold extends StatelessWidget {
       color: theme.colorScheme.background,
       child: Column(
         children: [
-          SectionHeader(title: title),
+          SectionHeader(title: title, actions: actions),
           Expanded(child: body),
         ],
       ),

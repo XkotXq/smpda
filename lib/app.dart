@@ -37,6 +37,17 @@ class SmPdaApp extends ConsumerWidget {
       locale: locale.flutterLocale,
       supportedLocales: AppLocale.values.map((l) => l.flutterLocale),
       routerConfig: ref.watch(routerProvider),
+      // The app has no Scaffold to make room for the on-screen keyboard, so do it
+      // here for every screen: the content ends where the keyboard begins (the
+      // field being typed in scrolls into that smaller area instead of sitting
+      // behind the keyboard). The inset is then consumed so nothing pads twice.
+      builder: (context, child) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: media.removeViewInsets(removeBottom: true),
+          child: Padding(padding: EdgeInsets.only(bottom: media.viewInsets.bottom), child: child),
+        );
+      },
     );
   }
 }

@@ -3,7 +3,13 @@
     "username": "Username",
     "password": "Password",
     "submit": "Sign in",
-    "submitting": "Signing in..."
+    "submitting": "Signing in...",
+    "errors": {
+      "invalidCredentials": "Wrong username or password.",
+      "cipUnreachable": "Could not reach the CIP system.",
+      "tooManyAttempts": "Too many login attempts. Try again in a few minutes.",
+      "serverUnreachable": "Could not reach the server. Check the address in Settings."
+    }
   },
   "settings": {
     "title": "Settings",
@@ -13,6 +19,8 @@
     "apiToken": "API token",
     "save": "Save",
     "language": "Language",
+    "numericKeyboard": "On-screen keyboard for number fields",
+    "numericKeyboardHint": "Turn off if you type quantities on the scanner's physical keypad.",
     "theme": {
       "label": "Theme",
       "system": "System",
@@ -35,15 +43,23 @@
     "noSpoolNumber": "No spool number",
     "noSpoolTag": "no spool no.",
     "unitLabel": "Spool",
-    "unitOptional": "Spool number (blank = unmarked)",
+    "unitOptional": "Spool number",
     "quantityLabel": "Quantity",
     "available": "Available: {value}",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "submitting": "Saving...",
     "submitted": "Saved.",
+    "issued": "Issued {name}.",
+    "received": "Received {name}.",
+    "errorNotInStock": "This material is no longer in stock.",
+    "errorUnitGone": "This spool has already been issued.",
+    "errorNotEnough": "Only {available} in stock.",
+    "loadingStock": "Loading stock from the server…",
+    "toastLoadFailed": "Could not load stock from the server.",
     "toastUnknown": "Unknown code - no matching material or unit.",
-    "toastNotIssuable": "No available quantity of this material to issue."
+    "toastNotIssuable": "No available quantity of this material to issue.",
+    "loadingName": "Loading name…"
   },
   "dashboard": {
     "appTitle": "Stock Manager",
@@ -67,6 +83,23 @@
     }
   },
   "frp": {
-    "placeholder": "The FRP section is under construction."
+    "listTitle": "To label with a spool number",
+    "listEmpty": "No FRP without a spool number.",
+    "retry": "Try again",
+    "toastNotPending": "This FRP has no quantity without a spool number.",
+    "labelTitle": "Spool labeling",
+    "toLabel": "To label",
+    "batch": "Batch",
+    "spoolNumber": "Spool number",
+    "length": "Length",
+    "labeled": "Labeled {name}: {unitId}.",
+    "numberTaken": "Number {taken} was already taken - new number: {next}."
+  },
+  "history": {
+    "issuesTitle": "My issues",
+    "labelingsTitle": "My labelings",
+    "employee": "Employee number",
+    "empty": "No entries.",
+    "refresh": "Refresh"
   }
 }

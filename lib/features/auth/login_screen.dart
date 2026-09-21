@@ -8,6 +8,8 @@ import '../../core/api/auth_api.dart';
 import '../../core/session/session_providers.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
+import '../../widgets/enter_to_next.dart';
+import '../../widgets/field_scroll_padding.dart';
 
 /// First screen the app shows - GoRouter's own `redirect` (router.dart)
 /// sends here whenever AppSettings.isLoggedIn is false, and away from
@@ -48,17 +50,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
     try {
       final session = await ref.read(authApiProvider).login(username, password);
-      await ref.read(appSettingsProvider.notifier).setLoggedIn(
-            authToken: session.token,
-            authRefreshToken: session.refreshToken,
-            operatorName: session.name,
-          );
+      await ref
+          .read(appSettingsProvider.notifier)
+          .setLoggedIn(authToken: session.token, authRefreshToken: session.refreshToken, operatorName: session.userId);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = '$e');
+      setState(() => _error = _messageFor(e));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  /// The error in the selected language: wpsApi sends a code, CIP's own text
+  /// is Chinese and never shown. No code (server unreachable) or one this app
+  /// doesn't know -> the generic "can't reach the server" / the server's text.
+  String _messageFor(Object error) {
+    final t = context.t.login.errors;
+    if (error is AuthFailure) {
+      return switch (error.code) {
+        'invalid_credentials' => t.invalidCredentials,
+        'cip_unreachable' => t.cipUnreachable,
+        'too_many_attempts' => t.tooManyAttempts,
+        null => t.serverUnreachable,
+        _ => error.message,
+      };
+    }
+    return t.serverUnreachable;
   }
 
   @override
@@ -67,45 +84,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final t = context.t;
     return Stack(
       children: [
-        Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 320),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text('SM', style: theme.textTheme.h3, textAlign: TextAlign.center),
-                  const SizedBox(height: 32),
-                  ShadInput(
-                    controller: _usernameController,
-                    placeholder: Text(t.login.username),
-                    autofocus: true,
-                    textInputAction: TextInputAction.next,
-                  ),
-                  const SizedBox(height: 12),
-                  ShadInput(
-                    controller: _passwordController,
-                    placeholder: Text(t.login.password),
-                    obscureText: true,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _submit(),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      _error!,
-                      style: theme.textTheme.small.copyWith(color: theme.colorScheme.destructive),
-                      textAlign: TextAlign.center,
+        // Scrollable (centered while it fits): with the on-screen keyboard up
+        // the fields and the button no longer fit, so they scroll instead of
+        // being cut off.
+        LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 320),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('SM', style: theme.textTheme.h3, textAlign: TextAlign.center),
+                        const SizedBox(height: 32),
+                        EnterToNext(
+                          child: ShadInput(
+                            scrollPadding: kFieldScrollPadding,
+                            controller: _usernameController,
+                            placeholder: Text(t.login.username),
+                            autofocus: true,
+                            textInputAction: TextInputAction.next,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        EnterToNext(
+                          isLast: true,
+                          onLast: _submit,
+                          child: ShadInput(
+                            scrollPadding: kFieldScrollPadding,
+                            controller: _passwordController,
+                            placeholder: Text(t.login.password),
+                            obscureText: true,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (_) => _submit(),
+                          ),
+                        ),
+                        if (_error != null) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            _error!,
+                            style: theme.textTheme.small.copyWith(color: theme.colorScheme.destructive),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                        const SizedBox(height: 20),
+                        ShadButton(
+                          onPressed: _submitting ? null : _submit,
+                          child: Text(_submitting ? t.login.submitting : t.login.submit),
+                        ),
+                      ],
                     ),
-                  ],
-                  const SizedBox(height: 20),
-                  ShadButton(
-                    onPressed: _submitting ? null : _submit,
-                    child: Text(_submitting ? t.login.submitting : t.login.submit),
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -113,10 +148,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         Positioned(
           top: 8,
           right: 8,
-          child: ShadButton.ghost(
-            onPressed: () => context.push(settingsPath),
-            child: const Icon(LucideIcons.settings),
-          ),
+          child: ShadButton.ghost(onPressed: () => context.push(settingsPath), child: const Icon(LucideIcons.settings)),
         ),
       ],
     );

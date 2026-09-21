@@ -17,6 +17,7 @@ class AppSettings {
     this.authRefreshToken = '',
     this.themeMode = ThemeMode.system,
     this.localeCode = 'pl',
+    this.showNumericKeyboard = false,
   });
 
   /// e.g. http://192.168.1.50:4000 - the PDA is on the same warehouse
@@ -30,9 +31,9 @@ class AppSettings {
   /// [authToken] below, which is that one operator's own CIP session.
   final String apiToken;
 
-  /// The logged-in CIP user's display name (wpsApi's own `name` field,
-  /// from the old app's `user_info.employee`) - attached to every
-  /// sm_operations entry this device logs, same as wps's own `operator`.
+  /// The logged-in CIP user's employee number (wpsApi's own `userId`
+  /// field, the CIP username) - attached to every sm_operations entry
+  /// this device logs as the `operator`.
   final String operatorName;
 
   /// CIP OAuth2 access/refresh token pair from POST /api/auth/login (see
@@ -48,6 +49,11 @@ class AppSettings {
   /// SettingsScreen's language selector.
   final String localeCode;
 
+  /// Whether number fields (quantities) pop up the on-screen numeric
+  /// keyboard. Off by default: the PDA has its own physical keypad, so the
+  /// touch one would just cover half the screen - see numericKeyboardType.
+  final bool showNumericKeyboard;
+
   bool get isConfigured => apiBaseUrl.isNotEmpty && apiToken.isNotEmpty;
   bool get isLoggedIn => authToken.isNotEmpty;
 
@@ -59,6 +65,7 @@ class AppSettings {
     String? authRefreshToken,
     ThemeMode? themeMode,
     String? localeCode,
+    bool? showNumericKeyboard,
   }) {
     return AppSettings(
       apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
@@ -68,6 +75,7 @@ class AppSettings {
       authRefreshToken: authRefreshToken ?? this.authRefreshToken,
       themeMode: themeMode ?? this.themeMode,
       localeCode: localeCode ?? this.localeCode,
+      showNumericKeyboard: showNumericKeyboard ?? this.showNumericKeyboard,
     );
   }
 

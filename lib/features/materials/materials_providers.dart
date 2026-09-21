@@ -4,9 +4,11 @@ import '../../core/api/sm_catalog_api.dart';
 import '../../core/api/sm_items_api.dart';
 import '../../core/api/models/sm_item.dart';
 
-/// Current sm_items, fetched once and cached - every scan resolves against
-/// this in memory rather than hitting wpsApi per scan (a PDA operator can
-/// scan several codes a second on a good run).
+/// Current sm_items as last seen. A scan does NOT trust this: it re-reads the
+/// scanned item from wpsApi (see ReceiveIssueController) so the stock shown
+/// and issued against is the database's, then patches the result in here.
+/// What's left of this cache is finding which item a scanned spool tag
+/// belongs to, and the full list shown elsewhere.
 ///
 /// After a submit, ReceiveIssueController calls [SmItemsListNotifier.upsertLocal]
 /// instead of invalidating and refetching: a full refetch's request/response
@@ -23,6 +25,19 @@ class SmItemsListNotifier extends AsyncNotifier<List<SmItem>> {
     return ref.watch(smItemsApiProvider).list();
   }
 
+  void replaceAll(List<SmItem> items) {
+    state = AsyncData(items);
+  }
+
+  void removeLocal(String itemNo) {
+    final current = state.value;
+    if (current == null) return;
+    state = AsyncData([
+      for (final item in current)
+        if (item.itemNo != itemNo) item,
+    ]);
+  }
+
   void upsertLocal(SmItem item) {
     final current = state.value;
     if (current == null) return;
@@ -35,9 +50,7 @@ class SmItemsListNotifier extends AsyncNotifier<List<SmItem>> {
   }
 }
 
-final smItemsListProvider = AsyncNotifierProvider<SmItemsListNotifier, List<SmItem>>(
-  SmItemsListNotifier.new,
-);
+final smItemsListProvider = AsyncNotifierProvider<SmItemsListNotifier, List<SmItem>>(SmItemsListNotifier.new);
 
 /// sm_catalog, same caching reasoning - only consulted for a receipt whose
 /// item number isn't in current stock yet (a genuinely new item).

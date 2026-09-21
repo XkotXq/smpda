@@ -47,6 +47,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$operations$pl operations = Translations$operations$pl._(_root);
 	late final Translations$dashboard$pl dashboard = Translations$dashboard$pl._(_root);
 	late final Translations$frp$pl frp = Translations$frp$pl._(_root);
+	late final Translations$history$pl history = Translations$history$pl._(_root);
 }
 
 // Path: login
@@ -68,6 +69,8 @@ class Translations$login$pl {
 
 	/// pl: 'Logowanie...'
 	String get submitting => 'Logowanie...';
+
+	late final Translations$login$errors$pl errors = Translations$login$errors$pl._(_root);
 }
 
 // Path: settings
@@ -98,6 +101,12 @@ class Translations$settings$pl {
 
 	/// pl: 'Język'
 	String get language => 'Język';
+
+	/// pl: 'Klawiatura ekranowa przy polach liczbowych'
+	String get numericKeyboard => 'Klawiatura ekranowa przy polach liczbowych';
+
+	/// pl: 'Wyłącz, jeśli wpisujesz ilości fizyczną klawiaturą skanera.'
+	String get numericKeyboardHint => 'Wyłącz, jeśli wpisujesz ilości fizyczną klawiaturą skanera.';
 
 	late final Translations$settings$theme$pl theme = Translations$settings$theme$pl._(_root);
 }
@@ -155,8 +164,8 @@ class Translations$operations$pl {
 	/// pl: 'Szpula'
 	String get unitLabel => 'Szpula';
 
-	/// pl: 'Numer szpuli (puste = nieoznaczone)'
-	String get unitOptional => 'Numer szpuli (puste = nieoznaczone)';
+	/// pl: 'Numer szpuli'
+	String get unitOptional => 'Numer szpuli';
 
 	/// pl: 'Ilość'
 	String get quantityLabel => 'Ilość';
@@ -176,11 +185,35 @@ class Translations$operations$pl {
 	/// pl: 'Zapisano.'
 	String get submitted => 'Zapisano.';
 
+	/// pl: 'Wydano {name}.'
+	String issued({required Object name}) => 'Wydano ${name}.';
+
+	/// pl: 'Przyjęto {name}.'
+	String received({required Object name}) => 'Przyjęto ${name}.';
+
+	/// pl: 'Tego materiału nie ma już na stanie.'
+	String get errorNotInStock => 'Tego materiału nie ma już na stanie.';
+
+	/// pl: 'Ta szpula została już wydana.'
+	String get errorUnitGone => 'Ta szpula została już wydana.';
+
+	/// pl: 'Na stanie jest tylko {available}.'
+	String errorNotEnough({required Object available}) => 'Na stanie jest tylko ${available}.';
+
+	/// pl: 'Pobieranie stanu z serwera…'
+	String get loadingStock => 'Pobieranie stanu z serwera…';
+
+	/// pl: 'Nie udało się pobrać stanu z serwera.'
+	String get toastLoadFailed => 'Nie udało się pobrać stanu z serwera.';
+
 	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
 	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
 
 	/// pl: 'Brak dostępnej ilości tego materiału do wydania.'
 	String get toastNotIssuable => 'Brak dostępnej ilości tego materiału do wydania.';
+
+	/// pl: 'Pobieranie nazwy…'
+	String get loadingName => 'Pobieranie nazwy…';
 }
 
 // Path: dashboard
@@ -219,8 +252,83 @@ class Translations$frp$pl {
 
 	// Translations
 
-	/// pl: 'Sekcja FRP jest w budowie.'
-	String get placeholder => 'Sekcja FRP jest w budowie.';
+	/// pl: 'Do oznaczenia numerem szpuli'
+	String get listTitle => 'Do oznaczenia numerem szpuli';
+
+	/// pl: 'Brak FRP bez numeru szpuli.'
+	String get listEmpty => 'Brak FRP bez numeru szpuli.';
+
+	/// pl: 'Spróbuj ponownie'
+	String get retry => 'Spróbuj ponownie';
+
+	/// pl: 'Ten FRP nie ma ilości bez numeru szpuli.'
+	String get toastNotPending => 'Ten FRP nie ma ilości bez numeru szpuli.';
+
+	/// pl: 'Oznaczenie szpuli'
+	String get labelTitle => 'Oznaczenie szpuli';
+
+	/// pl: 'Do oznaczenia'
+	String get toLabel => 'Do oznaczenia';
+
+	/// pl: 'Batch'
+	String get batch => 'Batch';
+
+	/// pl: 'Numer szpuli'
+	String get spoolNumber => 'Numer szpuli';
+
+	/// pl: 'Długość'
+	String get length => 'Długość';
+
+	/// pl: 'Oznaczono {name}: {unitId}.'
+	String labeled({required Object name, required Object unitId}) => 'Oznaczono ${name}: ${unitId}.';
+
+	/// pl: 'Numer {taken} został już zajęty - nowy numer: {next}.'
+	String numberTaken({required Object taken, required Object next}) => 'Numer ${taken} został już zajęty - nowy numer: ${next}.';
+}
+
+// Path: history
+class Translations$history$pl {
+	Translations$history$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Moje wydania'
+	String get issuesTitle => 'Moje wydania';
+
+	/// pl: 'Moje oznaczenia'
+	String get labelingsTitle => 'Moje oznaczenia';
+
+	/// pl: 'Numer pracownika'
+	String get employee => 'Numer pracownika';
+
+	/// pl: 'Brak wpisów.'
+	String get empty => 'Brak wpisów.';
+
+	/// pl: 'Odśwież'
+	String get refresh => 'Odśwież';
+}
+
+// Path: login.errors
+class Translations$login$errors$pl {
+	Translations$login$errors$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Nieprawidłowy login lub hasło.'
+	String get invalidCredentials => 'Nieprawidłowy login lub hasło.';
+
+	/// pl: 'Nie udało się połączyć z systemem CIP.'
+	String get cipUnreachable => 'Nie udało się połączyć z systemem CIP.';
+
+	/// pl: 'Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.'
+	String get tooManyAttempts => 'Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.';
+
+	/// pl: 'Nie udało się połączyć z serwerem. Sprawdź adres w Ustawieniach.'
+	String get serverUnreachable => 'Nie udało się połączyć z serwerem. Sprawdź adres w Ustawieniach.';
 }
 
 // Path: settings.theme
@@ -307,6 +415,10 @@ extension on Translations {
 			'login.password' => 'Hasło',
 			'login.submit' => 'Zaloguj',
 			'login.submitting' => 'Logowanie...',
+			'login.errors.invalidCredentials' => 'Nieprawidłowy login lub hasło.',
+			'login.errors.cipUnreachable' => 'Nie udało się połączyć z systemem CIP.',
+			'login.errors.tooManyAttempts' => 'Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.',
+			'login.errors.serverUnreachable' => 'Nie udało się połączyć z serwerem. Sprawdź adres w Ustawieniach.',
 			'settings.title' => 'Ustawienia',
 			'settings.loggedInAs' => 'Zalogowano jako',
 			'settings.logout' => 'Wyloguj',
@@ -314,6 +426,8 @@ extension on Translations {
 			'settings.apiToken' => 'Token API',
 			'settings.save' => 'Zapisz',
 			'settings.language' => 'Język',
+			'settings.numericKeyboard' => 'Klawiatura ekranowa przy polach liczbowych',
+			'settings.numericKeyboardHint' => 'Wyłącz, jeśli wpisujesz ilości fizyczną klawiaturą skanera.',
 			'settings.theme.label' => 'Motyw',
 			'settings.theme.system' => 'Systemowy',
 			'settings.theme.light' => 'Jasny',
@@ -330,15 +444,23 @@ extension on Translations {
 			'operations.noSpoolNumber' => 'Brak numeru szpuli',
 			'operations.noSpoolTag' => 'bez nr szpuli',
 			'operations.unitLabel' => 'Szpula',
-			'operations.unitOptional' => 'Numer szpuli (puste = nieoznaczone)',
+			'operations.unitOptional' => 'Numer szpuli',
 			'operations.quantityLabel' => 'Ilość',
 			'operations.available' => ({required Object value}) => 'Dostępne: ${value}',
 			'operations.confirm' => 'Zatwierdź',
 			'operations.cancel' => 'Anuluj',
 			'operations.submitting' => 'Zapisywanie...',
 			'operations.submitted' => 'Zapisano.',
+			'operations.issued' => ({required Object name}) => 'Wydano ${name}.',
+			'operations.received' => ({required Object name}) => 'Przyjęto ${name}.',
+			'operations.errorNotInStock' => 'Tego materiału nie ma już na stanie.',
+			'operations.errorUnitGone' => 'Ta szpula została już wydana.',
+			'operations.errorNotEnough' => ({required Object available}) => 'Na stanie jest tylko ${available}.',
+			'operations.loadingStock' => 'Pobieranie stanu z serwera…',
+			'operations.toastLoadFailed' => 'Nie udało się pobrać stanu z serwera.',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
+			'operations.loadingName' => 'Pobieranie nazwy…',
 			'dashboard.appTitle' => 'Stock Manager',
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',
@@ -352,7 +474,22 @@ extension on Translations {
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',
 			'dashboard.frp.title' => 'FRP',
 			'dashboard.frp.subtitle' => 'Oznaczenie numerów szpul',
-			'frp.placeholder' => 'Sekcja FRP jest w budowie.',
+			'frp.listTitle' => 'Do oznaczenia numerem szpuli',
+			'frp.listEmpty' => 'Brak FRP bez numeru szpuli.',
+			'frp.retry' => 'Spróbuj ponownie',
+			'frp.toastNotPending' => 'Ten FRP nie ma ilości bez numeru szpuli.',
+			'frp.labelTitle' => 'Oznaczenie szpuli',
+			'frp.toLabel' => 'Do oznaczenia',
+			'frp.batch' => 'Batch',
+			'frp.spoolNumber' => 'Numer szpuli',
+			'frp.length' => 'Długość',
+			'frp.labeled' => ({required Object name, required Object unitId}) => 'Oznaczono ${name}: ${unitId}.',
+			'frp.numberTaken' => ({required Object taken, required Object next}) => 'Numer ${taken} został już zajęty - nowy numer: ${next}.',
+			'history.issuesTitle' => 'Moje wydania',
+			'history.labelingsTitle' => 'Moje oznaczenia',
+			'history.employee' => 'Numer pracownika',
+			'history.empty' => 'Brak wpisów.',
+			'history.refresh' => 'Odśwież',
 			_ => null,
 		};
 	}

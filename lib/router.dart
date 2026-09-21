@@ -1,11 +1,14 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'core/session/session_providers.dart';
 import 'features/auth/login_screen.dart';
 import 'features/dashboard/dashboard_screen.dart';
+import 'features/frp/frp_label_screen.dart';
 import 'features/frp/frp_screen.dart';
+import 'features/history/history_screen.dart';
 import 'features/home/home_shell.dart';
 import 'features/materials/operation_screen.dart';
 import 'features/materials/spool_picker_screen.dart';
@@ -27,6 +30,9 @@ const materialsSmPath = '/materials-sm';
 const materialsSmOperationPath = '/materials-sm/operation';
 const materialsSmSpoolsPath = '/materials-sm/spools';
 const frpPath = '/frp';
+const frpLabelPath = '/frp/label';
+const historyIssuesPath = '/history/issues';
+const historyLabelingsPath = '/history/labelings';
 const settingsPath = '/settings';
 
 /// Notifies GoRouter's `redirect` to re-run whenever AppSettings changes -
@@ -68,15 +74,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: frpPath,
         builder: (context, state) => SectionScaffold(
           title: context.t.dashboard.frp.title,
+          // "Moje oznaczenia" - icon only, at the right of the header.
+          actions: [
+            ShadButton.ghost(
+              onPressed: () => context.push(historyLabelingsPath),
+              child: Icon(LucideIcons.history, semanticLabel: context.t.history.labelingsTitle),
+            ),
+          ],
           body: const FrpScreen(),
         ),
       ),
       GoRoute(
+        path: frpLabelPath,
+        builder: (context, state) => FrpLabelScreen(args: state.extra! as FrpLabelArgs),
+      ),
+      GoRoute(
+        path: historyIssuesPath,
+        builder: (context, state) => const HistoryScreen(kind: HistoryKind.issue),
+      ),
+      GoRoute(
+        path: historyLabelingsPath,
+        builder: (context, state) => const HistoryScreen(kind: HistoryKind.labeling),
+      ),
+      GoRoute(
         path: settingsPath,
-        builder: (context, state) => SectionScaffold(
-          title: context.t.settings.title,
-          body: const SettingsScreen(),
-        ),
+        builder: (context, state) => SectionScaffold(title: context.t.settings.title, body: const SettingsScreen()),
       ),
     ],
   );

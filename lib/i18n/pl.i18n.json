@@ -3,7 +3,13 @@
     "username": "Login",
     "password": "Hasło",
     "submit": "Zaloguj",
-    "submitting": "Logowanie..."
+    "submitting": "Logowanie...",
+    "errors": {
+      "invalidCredentials": "Nieprawidłowy login lub hasło.",
+      "cipUnreachable": "Nie udało się połączyć z systemem CIP.",
+      "tooManyAttempts": "Zbyt wiele prób logowania. Spróbuj ponownie za kilka minut.",
+      "serverUnreachable": "Nie udało się połączyć z serwerem. Sprawdź adres w Ustawieniach."
+    }
   },
   "settings": {
     "title": "Ustawienia",
@@ -13,6 +19,8 @@
     "apiToken": "Token API",
     "save": "Zapisz",
     "language": "Język",
+    "numericKeyboard": "Klawiatura ekranowa przy polach liczbowych",
+    "numericKeyboardHint": "Wyłącz, jeśli wpisujesz ilości fizyczną klawiaturą skanera.",
     "theme": {
       "label": "Motyw",
       "system": "Systemowy",
@@ -35,15 +43,23 @@
     "noSpoolNumber": "Brak numeru szpuli",
     "noSpoolTag": "bez nr szpuli",
     "unitLabel": "Szpula",
-    "unitOptional": "Numer szpuli (puste = nieoznaczone)",
+    "unitOptional": "Numer szpuli",
     "quantityLabel": "Ilość",
     "available": "Dostępne: {value}",
     "confirm": "Zatwierdź",
     "cancel": "Anuluj",
     "submitting": "Zapisywanie...",
     "submitted": "Zapisano.",
+    "issued": "Wydano {name}.",
+    "received": "Przyjęto {name}.",
+    "errorNotInStock": "Tego materiału nie ma już na stanie.",
+    "errorUnitGone": "Ta szpula została już wydana.",
+    "errorNotEnough": "Na stanie jest tylko {available}.",
+    "loadingStock": "Pobieranie stanu z serwera…",
+    "toastLoadFailed": "Nie udało się pobrać stanu z serwera.",
     "toastUnknown": "Nieznany kod - nie znaleziono materiału ani jednostki.",
-    "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania."
+    "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania.",
+    "loadingName": "Pobieranie nazwy…"
   },
   "dashboard": {
     "appTitle": "Stock Manager",
@@ -67,6 +83,23 @@
     }
   },
   "frp": {
-    "placeholder": "Sekcja FRP jest w budowie."
+    "listTitle": "Do oznaczenia numerem szpuli",
+    "listEmpty": "Brak FRP bez numeru szpuli.",
+    "retry": "Spróbuj ponownie",
+    "toastNotPending": "Ten FRP nie ma ilości bez numeru szpuli.",
+    "labelTitle": "Oznaczenie szpuli",
+    "toLabel": "Do oznaczenia",
+    "batch": "Batch",
+    "spoolNumber": "Numer szpuli",
+    "length": "Długość",
+    "labeled": "Oznaczono {name}: {unitId}.",
+    "numberTaken": "Numer {taken} został już zajęty - nowy numer: {next}."
+  },
+  "history": {
+    "issuesTitle": "Moje wydania",
+    "labelingsTitle": "Moje oznaczenia",
+    "employee": "Numer pracownika",
+    "empty": "Brak wpisów.",
+    "refresh": "Odśwież"
   }
 }

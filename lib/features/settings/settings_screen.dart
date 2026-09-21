@@ -5,6 +5,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/session/session_providers.dart';
 import '../../i18n/gen/strings.g.dart';
+import '../../widgets/field_scroll_padding.dart';
 
 /// Where the PDA points at wpsApi (apiBaseUrl/apiToken) plus this device's
 /// own display prefs (language/theme) - see AppSettings. Nothing here is a
@@ -56,10 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(
-                        '${t.settings.loggedInAs}: ${settings.operatorName}',
-                        style: theme.textTheme.small,
-                      ),
+                      child: Text('${t.settings.loggedInAs}: ${settings.operatorName}', style: theme.textTheme.small),
                     ),
                     ShadButton.outline(
                       onPressed: () => ref.read(appSettingsProvider.notifier).logout(),
@@ -78,8 +76,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ShadOption(value: 'pl', child: Text('Polski')),
                   ShadOption(value: 'en', child: Text('English')),
                 ],
-                selectedOptionBuilder: (context, value) =>
-                    Text(value == 'pl' ? 'Polski' : 'English'),
+                selectedOptionBuilder: (context, value) => Text(value == 'pl' ? 'Polski' : 'English'),
                 onChanged: (value) {
                   if (value != null) ref.read(appSettingsProvider.notifier).setLocale(value);
                 },
@@ -105,9 +102,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
               ),
               const SizedBox(height: 16),
+              ShadSwitch(
+                value: settings.showNumericKeyboard,
+                onChanged: (value) => ref.read(appSettingsProvider.notifier).setShowNumericKeyboard(value),
+                label: Text(t.settings.numericKeyboard),
+                sublabel: Text(t.settings.numericKeyboardHint),
+              ),
+              const SizedBox(height: 16),
               Text(t.settings.apiUrl, style: theme.textTheme.small),
               const SizedBox(height: 6),
               ShadInput(
+                scrollPadding: kFieldScrollPadding,
                 controller: _baseUrlController,
                 placeholder: const Text('http://192.168.1.50:4000'),
                 keyboardType: TextInputType.url,
@@ -115,14 +120,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 16),
               Text(t.settings.apiToken, style: theme.textTheme.small),
               const SizedBox(height: 6),
-              ShadInput(controller: _tokenController, obscureText: true),
+              ShadInput(scrollPadding: kFieldScrollPadding, controller: _tokenController, obscureText: true),
               const SizedBox(height: 24),
               ShadButton(
                 onPressed: () {
-                  ref.read(appSettingsProvider.notifier).save(
-                        apiBaseUrl: _baseUrlController.text.trim(),
-                        apiToken: _tokenController.text.trim(),
-                      );
+                  ref
+                      .read(appSettingsProvider.notifier)
+                      .save(apiBaseUrl: _baseUrlController.text.trim(), apiToken: _tokenController.text.trim());
                 },
                 child: Text(t.settings.save),
               ),

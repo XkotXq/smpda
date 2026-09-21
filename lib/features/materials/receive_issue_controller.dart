@@ -3,22 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api/models/sm_item.dart';
 import '../../core/api/models/sm_operation.dart';
 import '../../core/api/models/sm_unit.dart';
-import '../../core/api/sm_catalog_api.dart';
 import '../../core/api/sm_items_api.dart';
 import '../../core/api/sm_operations_api.dart';
 import '../../core/session/session_providers.dart';
 import '../../core/utils/quantity.dart';
+import '../../i18n/gen/strings.g.dart';
 import 'materials_providers.dart';
 import 'receive_issue_models.dart';
+import 'scanned_code.dart';
 
 class ReceiveIssueState {
-  const ReceiveIssueState({
-    this.mode = FlowMode.receive,
-    this.current,
-    this.pick,
-    this.submitting = false,
-    this.error,
-  });
+  const ReceiveIssueState({this.mode = FlowMode.receive, this.current, this.pick, this.submitting = false, this.error});
 
   final FlowMode mode;
   final CurrentOperation? current;
@@ -58,55 +53,141 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     state = ReceiveIssueState(mode: mode);
   }
 
-  SmItem? _findItem(String itemNo) {
+  /// The item straight from wpsApi (null: not in stock), also patched into
+  /// the cached list so the rest of the app sees the same numbers. Every scan
+  /// and every submit goes through this - never the cache alone - so the
+  /// stock on screen is the database's at that moment.
+  Future<SmItem?> _fetchItem(String itemNo) async {
+    final item = await ref.read(smItemsApiProvider).get(itemNo);
+    final cache = ref.read(smItemsListProvider.notifier);
+    if (item == null) {
+      cache.removeLocal(itemNo);
+    } else {
+      cache.upsertLocal(item);
+    }
+    return item;
+  }
+
+  /// Which cached item holds a spool with this tag (the scan may be a spool's
+  /// own tag rather than an item number).
+  SmItem? _cachedItemWithUnit(ScannedCode scanned) {
     for (final item in ref.read(smItemsListProvider).value ?? const <SmItem>[]) {
-      if (item.itemNo == itemNo) return item;
+      if (item.units.any((u) => u.unitId == scanned.raw || u.unitId == scanned.itemNo)) return item;
     }
     return null;
   }
 
-  SmCatalogItem? _findCatalog(String itemNo) {
-    for (final entry in ref.read(smCatalogListProvider).value ?? const <SmCatalogItem>[]) {
-      if (entry.itemNo == itemNo) return entry;
+  /// A submit re-reads the item first (the operator may have taken a while
+  /// to type the quantity) - stop if what they were about to issue is gone.
+  void _checkStillAvailable(SmItem item, IssueOperation op, double qty) {
+    switch (op.kind) {
+      case IssueKind.unit:
+        if (!item.units.any((u) => u.unitId == op.unitId)) throw t.operations.errorUnitGone;
+      case IssueKind.aggregate:
+        if (qty > (parseQuantity(item.totalQuantity ?? '0') ?? 0)) {
+          throw t.operations.errorNotEnough(available: trimQuantity(item.totalQuantity ?? '0'));
+        }
+      case IssueKind.pending:
+        if (qty > (parseQuantity(item.pendingQuantity ?? '0') ?? 0)) {
+          throw t.operations.errorNotEnough(available: trimQuantity(item.pendingQuantity ?? '0'));
+        }
     }
-    return null;
   }
 
-  ScanOutcome scan(String rawCode) {
-    final code = rawCode.trim();
-    if (code.isEmpty) return ScanUnknown();
-    return state.mode == FlowMode.issue ? _scanForIssue(code) : _scanForReceive(code);
+  static String? _nonEmpty(String? value) => value == null || value.trim().isEmpty ? null : value;
+
+  /// Wydanie: reads the item from the server, then opens the operation (or the
+  /// spool picker). Throws (network/API error) rather than guessing - the
+  /// screen shows it. Przyjęcie goes through [startReceive]/[resolveReceive].
+  Future<ScanOutcome> scan(String rawCode) async {
+    final code = ScannedCode.parse(rawCode);
+    if (code.raw.isEmpty) return ScanUnknown();
+    return _scanForIssue(code);
   }
 
-  ScanOutcome _scanForIssue(String code) {
-    for (final item in ref.read(smItemsListProvider).value ?? const <SmItem>[]) {
-      for (final unit in item.units) {
-        if (unit.unitId != code) continue;
-        _setCurrent(IssueOperation(
+  /// Przyjęcie, step 1: opens the operation at once with just the scanned item
+  /// number (and batch) - the screen shows it while [resolveReceive] fetches
+  /// the name.
+  ScanOutcome startReceive(String rawCode) {
+    final scanned = ScannedCode.parse(rawCode);
+    if (scanned.itemNo.isEmpty) return ScanUnknown();
+    _setCurrent(
+      ReceiveOperation(
+        itemNo: scanned.itemNo,
+        itemName: '',
+        locationCode: '',
+        trackedIndividually: false,
+        productBatch: scanned.batch,
+        loading: true,
+      ),
+    );
+    return ScanStarted();
+  }
+
+  /// Przyjęcie, step 2: fills in what [startReceive] left open - name,
+  /// location, per-spool tracking - from the server (stock first, then the
+  /// catalog). Whatever the operator typed meanwhile (quantity, location, spool
+  /// number) is kept. ScanUnknown: the item is nowhere. Throws on a network/API
+  /// error.
+  Future<ScanOutcome> resolveReceive() async {
+    final pending = state.current;
+    if (pending is! ReceiveOperation || !pending.loading) return ScanStarted();
+
+    final resolved = await _lookupReceive(pending.itemNo, pending.productBatch);
+    // Cancelled or replaced while waiting - nothing to fill in any more.
+    if (!identical(state.current, pending)) return ScanStarted();
+    if (resolved == null) return ScanUnknown();
+
+    resolved
+      ..quantity = pending.quantity
+      ..unitId = pending.unitId;
+    if (pending.location.trim().isNotEmpty) resolved.location = pending.location;
+    state = state.copyWith(current: resolved);
+    return ScanStarted();
+  }
+
+  Future<ScanOutcome> _scanForIssue(ScannedCode scanned) async {
+    final code = scanned.itemNo;
+    final tagOwner = _cachedItemWithUnit(scanned);
+    var item = await _fetchItem(tagOwner?.itemNo ?? code);
+    if (item == null && tagOwner == null) {
+      // Not an item number, and no cached spool has this tag - it may have
+      // been received since the cache was loaded, so look at the whole list.
+      final all = await ref.read(smItemsApiProvider).list();
+      ref.read(smItemsListProvider.notifier).replaceAll(all);
+      item = _cachedItemWithUnit(scanned);
+    }
+    if (item == null) return ScanUnknown();
+
+    for (final unit in item.units) {
+      if (unit.unitId != scanned.raw && unit.unitId != code) continue;
+      _setCurrent(
+        IssueOperation(
           itemNo: item.itemNo,
           itemName: item.itemName,
           locationCode: item.locationCode,
           kind: IssueKind.unit,
           available: unit.quantity,
           unitId: unit.unitId,
-        ));
-        return ScanStarted();
-      }
+          productBatch: scanned.batch ?? _nonEmpty(unit.productBatch),
+        ),
+      );
+      return ScanStarted();
     }
-
-    final item = _findItem(code);
-    if (item == null) return ScanUnknown();
 
     if (!item.trackedIndividually) {
       final qty = parseQuantity(item.totalQuantity ?? '0') ?? 0;
       if (qty <= 0) return ScanNotIssuable();
-      _setCurrent(IssueOperation(
-        itemNo: item.itemNo,
-        itemName: item.itemName,
-        locationCode: item.locationCode,
-        kind: IssueKind.aggregate,
-        available: item.totalQuantity ?? '0',
-      ));
+      _setCurrent(
+        IssueOperation(
+          itemNo: item.itemNo,
+          itemName: item.itemName,
+          locationCode: item.locationCode,
+          kind: IssueKind.aggregate,
+          available: item.totalQuantity ?? '0',
+          productBatch: scanned.batch,
+        ),
+      );
       return ScanStarted();
     }
 
@@ -119,13 +200,16 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     // Nothing but the unmarked remainder: no spool to choose, straight to
     // typing how much of it to issue.
     if (item.units.isEmpty) {
-      _setCurrent(IssueOperation(
-        itemNo: item.itemNo,
-        itemName: item.itemName,
-        locationCode: item.locationCode,
-        kind: IssueKind.pending,
-        available: item.pendingQuantity!,
-      ));
+      _setCurrent(
+        IssueOperation(
+          itemNo: item.itemNo,
+          itemName: item.itemName,
+          locationCode: item.locationCode,
+          kind: IssueKind.pending,
+          available: item.pendingQuantity!,
+          productBatch: scanned.batch,
+        ),
+      );
       return ScanStarted();
     }
 
@@ -134,38 +218,42 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         itemNo: item.itemNo,
         itemName: item.itemName,
         locationCode: item.locationCode,
-        units: [for (final unit in item.units) (unitId: unit.unitId, quantity: unit.quantity)],
+        units: [
+          for (final unit in item.units)
+            (unitId: unit.unitId, quantity: unit.quantity, productBatch: unit.productBatch),
+        ],
         pendingQuantity: item.hasPendingQuantity ? item.pendingQuantity : null,
+        productBatch: scanned.batch,
       ),
       clearError: true,
     );
     return ScanNeedsPick();
   }
 
-  ScanOutcome _scanForReceive(String code) {
-    final stockItem = _findItem(code);
+  /// The receipt for [itemNo]: an item already in stock, else a catalog entry
+  /// (read fresh - someone may have just added it in wps), else null.
+  Future<ReceiveOperation?> _lookupReceive(String itemNo, String? productBatch) async {
+    final stockItem = await _fetchItem(itemNo);
     if (stockItem != null) {
-      _setCurrent(ReceiveOperation(
+      return ReceiveOperation(
         itemNo: stockItem.itemNo,
         itemName: stockItem.itemName,
         locationCode: stockItem.locationCode,
         trackedIndividually: stockItem.trackedIndividually,
-      ));
-      return ScanStarted();
+        productBatch: productBatch,
+      );
     }
 
-    final catalogItem = _findCatalog(code);
-    if (catalogItem != null) {
-      _setCurrent(ReceiveOperation(
-        itemNo: catalogItem.itemNo,
-        itemName: catalogItem.itemName,
-        locationCode: '',
-        trackedIndividually: catalogItem.individualUnits,
-      ));
-      return ScanStarted();
-    }
-
-    return ScanUnknown();
+    final catalog = await ref.refresh(smCatalogListProvider.future);
+    final catalogItem = catalog.where((entry) => entry.itemNo == itemNo).firstOrNull;
+    if (catalogItem == null) return null;
+    return ReceiveOperation(
+      itemNo: catalogItem.itemNo,
+      itemName: catalogItem.itemName,
+      locationCode: '',
+      trackedIndividually: catalogItem.individualUnits,
+      productBatch: productBatch,
+    );
   }
 
   void cancelPick() {
@@ -185,6 +273,7 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         locationCode: pick.locationCode,
         kind: IssueKind.pending,
         available: pick.pendingQuantity!,
+        productBatch: pick.productBatch,
       ),
       clearPick: true,
       clearError: true,
@@ -198,14 +287,17 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     if (pick == null) return Future.value(false);
     final unit = pick.units.where((u) => u.unitId == unitId).firstOrNull;
     if (unit == null) return Future.value(false);
-    _setCurrent(IssueOperation(
-      itemNo: pick.itemNo,
-      itemName: pick.itemName,
-      locationCode: pick.locationCode,
-      kind: IssueKind.unit,
-      available: unit.quantity,
-      unitId: unitId,
-    ));
+    _setCurrent(
+      IssueOperation(
+        itemNo: pick.itemNo,
+        itemName: pick.itemName,
+        locationCode: pick.locationCode,
+        kind: IssueKind.unit,
+        available: unit.quantity,
+        unitId: unitId,
+        productBatch: pick.productBatch ?? _nonEmpty(unit.productBatch),
+      ),
+    );
     return submit();
   }
 
@@ -259,6 +351,7 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   Future<bool> submit() async {
     final op = state.current;
     if (op == null || state.submitting) return false;
+    if (op is ReceiveOperation && op.loading) return false;
     final qty = parseQuantity(op.quantity) ?? 0;
     if (qty <= 0) return false;
 
@@ -268,12 +361,15 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       final operationsApi = ref.read(smOperationsApiProvider);
       final operatorName = ref.read(appSettingsProvider).value?.operatorName;
 
-      final existing = _findItem(op.itemNo);
+      // Fresh again, not what the scan saw: the operator may have taken a
+      // while to type the quantity, and the item is written back whole.
+      final existing = await _fetchItem(op.itemNo);
       SmItem item;
       SmOperation operation;
 
       if (op is ReceiveOperation) {
-        item = existing ??
+        item =
+            existing ??
             SmItem(
               itemNo: op.itemNo,
               itemName: op.itemName,
@@ -291,28 +387,35 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
           final next = (parseQuantity(item.pendingQuantity ?? '0') ?? 0) + qty;
           item = item.copyWith(pendingQuantity: formatQuantity(next));
         } else {
-          item = item.copyWith(units: [
-            ...item.units,
-            SmUnit(id: '', unitId: unitId, quantity: formatQuantity(qty)),
-          ]);
+          item = item.copyWith(
+            units: [
+              ...item.units,
+              SmUnit(id: '', unitId: unitId, quantity: formatQuantity(qty), productBatch: op.productBatch),
+            ],
+          );
         }
 
-        final location = op.location.trim();
-        if (location.isNotEmpty) item = item.copyWith(locationCode: location);
+        // Left empty -> the default (MT); an item already elsewhere shows that
+        // location prefilled, so it stays where it is unless changed.
+        final typedLocation = op.location.trim();
+        final location = typedLocation.isEmpty ? defaultReceiveLocation : typedLocation;
+        item = item.copyWith(locationCode: location);
 
         operation = SmOperation(
           operation: 'receipt',
-          location: location.isEmpty ? null : location,
+          location: location,
           itemNo: op.itemNo,
           itemName: op.itemName,
           unitId: unitId.isEmpty ? null : unitId,
           quantity: formatQuantity(qty),
+          productBatch: op.productBatch,
           operator: operatorName,
         );
       } else {
         op as IssueOperation;
-        if (existing == null) return false;
+        if (existing == null) throw t.operations.errorNotInStock;
         item = existing;
+        _checkStillAvailable(item, op, qty);
 
         switch (op.kind) {
           case IssueKind.unit:
@@ -333,6 +436,7 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
           itemName: op.itemName,
           unitId: op.unitId,
           quantity: formatQuantity(qty),
+          productBatch: op.productBatch,
           operator: operatorName,
         );
       }
@@ -350,5 +454,6 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   }
 }
 
-final receiveIssueControllerProvider =
-    NotifierProvider<ReceiveIssueController, ReceiveIssueState>(ReceiveIssueController.new);
+final receiveIssueControllerProvider = NotifierProvider<ReceiveIssueController, ReceiveIssueState>(
+  ReceiveIssueController.new,
+);

@@ -30,6 +30,10 @@ sealed class CurrentOperation {
   String get quantity;
 }
 
+/// Where a receipt goes when the operator leaves the location empty - shown as
+/// the field's placeholder, so it is only typed when the goods go elsewhere.
+const defaultReceiveLocation = 'MT';
+
 /// [unitId] blank means "Brak" (pendingQuantity, no physical spool number
 /// assigned yet), same as wps's own single-receipt form. Only meaningful
 /// when [trackedIndividually]; ignored for an aggregate item.
@@ -41,12 +45,22 @@ class ReceiveOperation extends CurrentOperation {
     required this.trackedIndividually,
     this.quantity = '',
     this.unitId = '',
-  }) : location = locationCode;
+    this.productBatch,
+    this.loading = false,
+  }) : location = locationCode == defaultReceiveLocation ? '' : locationCode;
 
   final bool trackedIndividually;
   @override
   String quantity;
   String unitId;
+
+  /// Batch number read from a multi-field label (see ScannedCode), if any.
+  final String? productBatch;
+
+  /// Only the scanned item number is known so far - name, location and whether
+  /// it is tracked per spool are still being read from the server (see
+  /// ReceiveIssueController.startReceive / resolveReceive).
+  final bool loading;
 
   /// Editable location the item is received to - starts as its current
   /// location (blank for a brand-new catalog item) and, when non-blank,
@@ -59,9 +73,8 @@ class ReceiveOperation extends CurrentOperation {
 ///   [available] (no partial unit issue) and isn't user-editable.
 /// - aggregate: [unitId] is null, [quantity] starts blank and
 ///   must be typed, capped at [available].
-/// - pending (unmarked stock): [unitId] is null, [quantity] starts as the
-///   whole [available] amount (the usual case is issuing all of it) and can
-///   be lowered, never raised past [available].
+/// - pending (unmarked stock): [unitId] is null, [quantity] starts blank
+///   like an aggregate and must be typed, capped at [available].
 class IssueOperation extends CurrentOperation {
   IssueOperation({
     required super.itemNo,
@@ -70,11 +83,16 @@ class IssueOperation extends CurrentOperation {
     required this.kind,
     required this.available,
     this.unitId,
-  }) : quantity = kind == IssueKind.aggregate ? '' : trimQuantity(available);
+    this.productBatch,
+  }) : quantity = kind == IssueKind.unit ? trimQuantity(available) : '';
 
   final IssueKind kind;
   final String? unitId;
   final String available;
+
+  /// Batch from the scanned label (see ScannedCode), or - for a spool picked
+  /// by its tag - the batch it was received with. Goes into the history.
+  final String? productBatch;
   @override
   String quantity;
 }
@@ -100,12 +118,16 @@ class SpoolPick {
     required this.locationCode,
     required this.units,
     required this.pendingQuantity,
+    this.productBatch,
   });
   final String itemNo;
   final String itemName;
   final String locationCode;
-  final List<({String unitId, String quantity})> units;
+  final List<({String unitId, String quantity, String? productBatch})> units;
   final String? pendingQuantity;
+
+  /// Batch of the scanned label, if it carried one.
+  final String? productBatch;
 }
 
 /// Catalog knows this item number but nothing is in stock yet - fine for

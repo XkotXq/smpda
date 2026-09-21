@@ -11,15 +11,21 @@ class SmOperationsApi {
   SmOperationsApi(this._dio);
   final Dio _dio;
 
+  /// [operator] (employee number) and [operation] ('issue' | 'receipt' |
+  /// 'labeling') narrow the list on the server - e.g. "my issues".
   Future<({List<SmOperation> rows, int total})> list({
     int? limit,
     int? offset,
+    String? operator,
+    String? operation,
   }) async {
     final res = await _dio.get<Map<String, dynamic>>(
       '/sm-operations',
       queryParameters: {
         if (limit != null) 'limit': limit,
         if (offset != null) 'offset': offset,
+        if (operator != null) 'operator': operator,
+        if (operation != null) 'operation': operation,
       },
     );
     final rows = (res.data?['rows'] as List<dynamic>? ?? [])

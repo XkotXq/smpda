@@ -1,10 +1,17 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart' show TextInputAction;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../core/scanner/trigger_capture.dart';
+import '../../core/session/numeric_keyboard.dart';
 import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
+import '../../widgets/enter_to_next.dart';
+import '../../widgets/field_scroll_padding.dart';
 import 'receive_issue_controller.dart';
 import 'receive_issue_models.dart';
 
@@ -25,6 +32,8 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
   final _quantityFocusNode = FocusNode();
   final _unitIdController = TextEditingController();
   final _locationController = TextEditingController();
+  late final TriggerCapture _trigger = ref.read(triggerCaptureProvider);
+  StreamSubscription<void>? _triggerSub;
 
   @override
   void initState() {
@@ -33,10 +42,18 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
     _quantityController.text = op?.quantity ?? '';
     _unitIdController.text = op is ReceiveOperation ? op.unitId : '';
     _locationController.text = op is ReceiveOperation ? op.location : '';
+    // While this screen is up the scan button is "Potwierdź", not a scanner
+    // (see TriggerCapture) - and no second scan can start another operation.
+    _trigger.acquire();
+    _triggerSub = _trigger.onPressed.listen((_) {
+      if (!ref.read(receiveIssueControllerProvider).submitting) _confirm();
+    });
   }
 
   @override
   void dispose() {
+    _triggerSub?.cancel();
+    _trigger.release();
     _quantityController.dispose();
     _quantityFocusNode.dispose();
     _unitIdController.dispose();
@@ -46,10 +63,17 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
 
   Future<void> _confirm() async {
     final t = context.t;
+    // Read before submit(), which clears the current operation.
+    final op = ref.read(receiveIssueControllerProvider).current;
     final ok = await ref.read(receiveIssueControllerProvider.notifier).submit();
     if (!mounted) return;
     if (ok) {
-      ShadToaster.of(context).show(ShadToast(description: Text(t.operations.submitted)));
+      final message = switch (op) {
+        IssueOperation() => t.operations.issued(name: op.itemName),
+        ReceiveOperation() => t.operations.received(name: op.itemName),
+        null => t.operations.submitted,
+      };
+      ShadToaster.of(context).show(ShadToast(description: Text(message)));
       context.pop();
     } else {
       final error = ref.read(receiveIssueControllerProvider).error;
@@ -70,6 +94,20 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
     final t = context.t;
     final state = ref.watch(receiveIssueControllerProvider);
     final op = state.current;
+
+    // The scan opened this screen before the server answered: when the
+    // location comes in, put it in the field - unless something was typed there.
+    ref.listen(receiveIssueControllerProvider.select((s) => s.current), (previous, next) {
+      if (previous is ReceiveOperation &&
+          previous.loading &&
+          next is ReceiveOperation &&
+          !next.loading &&
+          _locationController.text.trim().isEmpty) {
+        _locationController.text = next.location;
+      }
+    });
+    // Nothing to confirm until the item is known.
+    final loading = op is ReceiveOperation && op.loading;
 
     // Normally never hit while this screen is visible (submit/cancel both
     // pop it themselves) - guards the one edge case where something else
@@ -112,20 +150,19 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
             Expanded(
               child: op is IssueOperation
                   ? _IssueBody(op: op, quantityController: _quantityController, quantityFocusNode: _quantityFocusNode)
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: _OperationFields(
-                        op: op,
-                        quantityController: _quantityController,
-                        quantityFocusNode: _quantityFocusNode,
-                        unitIdController: _unitIdController,
-                        locationController: _locationController,
-                      ),
+                  : _ReceiveBody(
+                      op: op as ReceiveOperation,
+                      quantityController: _quantityController,
+                      quantityFocusNode: _quantityFocusNode,
+                      unitIdController: _unitIdController,
+                      locationController: _locationController,
                     ),
             ),
             if (op is IssueOperation)
               DecoratedBox(
-                decoration: BoxDecoration(border: Border(top: BorderSide(color: theme.colorScheme.border))),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: theme.colorScheme.border)),
+                ),
                 child: SafeArea(
                   top: false,
                   child: Padding(
@@ -154,8 +191,8 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: ShadButton(
-                          enabled: !state.submitting,
-                          onPressed: state.submitting ? null : _confirm,
+                          enabled: !state.submitting && !loading,
+                          onPressed: state.submitting || loading ? null : _confirm,
                           child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
                         ),
                       ),
@@ -185,22 +222,25 @@ class _IssueBody extends ConsumerWidget {
     final theme = ShadTheme.of(context);
     final t = context.t;
     final controller = ref.read(receiveIssueControllerProvider.notifier);
-    TextStyle bigStyleFor(String text) {
-      final scale = text.length > 6 ? 6 / text.length : 1.0;
-      return theme.textTheme.h1.copyWith(fontSize: 72 * scale, fontWeight: FontWeight.w700, height: 1.1);
+    // The quantity to issue sits right under the item details, left-aligned -
+    // a modest size (it shrinks for long numbers) rather than a giant centered one.
+    TextStyle quantityStyleFor(String text) {
+      final scale = text.length > 8 ? 8 / text.length : 1.0;
+      return theme.textTheme.h1.copyWith(fontSize: 34 * scale, fontWeight: FontWeight.w700, height: 1.2);
     }
+
     final divider = Container(height: 1, color: theme.colorScheme.border);
 
     Widget stat(String label, String value) => Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: theme.textTheme.muted.copyWith(fontSize: 12)),
-              const SizedBox(height: 4),
-              Text(value, style: theme.textTheme.p.copyWith(fontSize: 16, fontWeight: FontWeight.w700)),
-            ],
-          ),
-        );
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: theme.textTheme.muted.copyWith(fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(value, style: theme.textTheme.p.copyWith(fontSize: 16, fontWeight: FontWeight.w700)),
+        ],
+      ),
+    );
 
     return CustomScrollView(
       slivers: [
@@ -245,38 +285,33 @@ class _IssueBody extends ConsumerWidget {
             ],
           ),
         ),
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(t.operations.issueQuantity, style: theme.textTheme.muted.copyWith(fontSize: 14)),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    width: 280,
-                    child: op.kind == IssueKind.unit
-                        ? Text(op.quantity, textAlign: TextAlign.center, style: bigStyleFor(op.quantity))
-                        : ListenableBuilder(
-                            listenable: quantityController,
-                            builder: (context, _) => ShadInput(
-                              controller: quantityController,
-                              focusNode: quantityFocusNode,
-                              autofocus: op.kind != IssueKind.pending,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              onChanged: controller.updateQuantity,
-                              textAlign: TextAlign.center,
-                              style: bigStyleFor(quantityController.text),
-                              padding: EdgeInsets.zero,
-                              decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
-                            ),
-                          ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t.operations.issueQuantity, style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                const SizedBox(height: 4),
+                if (op.kind == IssueKind.unit)
+                  Text(op.quantity, style: quantityStyleFor(op.quantity))
+                else
+                  ListenableBuilder(
+                    listenable: quantityController,
+                    builder: (context, _) => ShadInput(
+                      scrollPadding: kFieldScrollPadding,
+                      controller: quantityController,
+                      focusNode: quantityFocusNode,
+                      autofocus: true,
+                      keyboardType: numericKeyboardType(ref),
+                      onChanged: controller.updateQuantity,
+                      style: quantityStyleFor(quantityController.text),
+                      padding: EdgeInsets.zero,
+                      decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                    ),
                   ),
-                  Container(width: 280, height: 2, color: theme.colorScheme.primary),
-                ],
-              ),
+                Container(height: 2, color: theme.colorScheme.primary),
+              ],
             ),
           ),
         ),
@@ -285,8 +320,12 @@ class _IssueBody extends ConsumerWidget {
   }
 }
 
-class _OperationFields extends ConsumerWidget {
-  const _OperationFields({
+/// Przyjęcie: the item on top (same block as Wydanie's), then the fields under
+/// it - quantity, location and, for a spool item, the spool number - all in
+/// Wydanie's look: a small caption, the value left-aligned in a modest size and
+/// an accent underline. Scrolls, so a field stays reachable with the keyboard up.
+class _ReceiveBody extends ConsumerWidget {
+  const _ReceiveBody({
     required this.op,
     required this.quantityController,
     required this.quantityFocusNode,
@@ -294,7 +333,7 @@ class _OperationFields extends ConsumerWidget {
     required this.locationController,
   });
 
-  final CurrentOperation op;
+  final ReceiveOperation op;
   final TextEditingController quantityController;
   final FocusNode quantityFocusNode;
   final TextEditingController unitIdController;
@@ -305,126 +344,108 @@ class _OperationFields extends ConsumerWidget {
     final theme = ShadTheme.of(context);
     final t = context.t;
     final controller = ref.read(receiveIssueControllerProvider.notifier);
+    final divider = Container(height: 1, color: theme.colorScheme.border);
 
-    Widget fields;
-    if (op is ReceiveOperation) {
-      final receiveOp = op as ReceiveOperation;
-      fields = Column(
-        children: [
-          _BigQuantityField(
-            controller: quantityController,
-            focusNode: quantityFocusNode,
-            label: t.operations.quantityLabel,
-            onChanged: controller.updateQuantity,
-          ),
-          const SizedBox(height: 20),
-          Text(t.operations.location, style: theme.textTheme.small, textAlign: TextAlign.center),
-          const SizedBox(height: 6),
-          ShadInput(controller: locationController, onChanged: controller.updateLocation, textAlign: TextAlign.center),
-          if (receiveOp.trackedIndividually) ...[
-            const SizedBox(height: 20),
-            Text(t.operations.unitOptional, style: theme.textTheme.small, textAlign: TextAlign.center),
-            const SizedBox(height: 6),
-            ShadInput(controller: unitIdController, onChanged: controller.updateUnitId, textAlign: TextAlign.center),
-          ],
-        ],
-      );
-    } else {
-      final issueOp = op as IssueOperation;
-      fields = issueOp.kind == IssueKind.unit
-          ? _BigQuantityDisplay(value: issueOp.quantity, label: '${t.operations.unitLabel} ${issueOp.unitId}')
-          : _BigQuantityField(
-              controller: quantityController,
-              focusNode: quantityFocusNode,
-              label: t.operations.quantityLabel,
-              onChanged: controller.updateQuantity,
-            );
+    TextStyle styleFor(String text, double size) {
+      final scale = text.length > 8 ? 8 / text.length : 1.0;
+      return theme.textTheme.h1.copyWith(fontSize: size * scale, fontWeight: FontWeight.w700, height: 1.2);
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(op.itemNo, style: theme.textTheme.h3),
-        Text(op.itemName, style: theme.textTheme.muted),
-        if (op is! ReceiveOperation && op.locationCode.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text('${t.operations.location}: ${op.locationCode}', style: theme.textTheme.muted),
-        ],
-        if (op case IssueOperation(kind: != IssueKind.unit, :final available)) ...[
-          const SizedBox(height: 4),
-          Text(t.operations.available(value: available), style: theme.textTheme.muted),
-        ],
-        const SizedBox(height: 32),
-        fields,
-      ],
-    );
-  }
-}
-
-/// The quantity to type - a big centered number with only an underline
-/// (no box/border around it), the way a PDA screen has room to make the one
-/// thing an operator actually needs to focus on the most prominent thing on
-/// screen, and a small caption naming it underneath.
-class _BigQuantityField extends StatelessWidget {
-  const _BigQuantityField({
-    required this.controller,
-    required this.focusNode,
-    required this.label,
-    required this.onChanged,
-  });
-
-  final TextEditingController controller;
-  final FocusNode focusNode;
-  final String label;
-  final ValueChanged<String> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-    return Column(
-      children: [
-        ShadInput(
-          controller: controller,
-          focusNode: focusNode,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          onChanged: onChanged,
-          textAlign: TextAlign.center,
-          style: theme.textTheme.h1.copyWith(fontWeight: FontWeight.w700),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+    Widget field({
+      required String label,
+      required TextEditingController textController,
+      required ValueChanged<String> onChanged,
+      required double size,
+      bool isLast = false,
+      String? placeholder,
+      FocusNode? focusNode,
+      bool autofocus = false,
+      TextInputType? keyboardType,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: theme.textTheme.muted.copyWith(fontSize: 12)),
+            const SizedBox(height: 4),
+            ListenableBuilder(
+              listenable: textController,
+              builder: (context, _) => EnterToNext(
+                isLast: isLast,
+                child: ShadInput(
+                  scrollPadding: kFieldScrollPadding,
+                  controller: textController,
+                  focusNode: focusNode,
+                  autofocus: autofocus,
+                  keyboardType: keyboardType,
+                  placeholder: placeholder == null ? null : Text(placeholder),
+                  placeholderStyle: placeholder == null
+                      ? null
+                      : styleFor('', size).copyWith(color: theme.colorScheme.mutedForeground.withValues(alpha: 0.5)),
+                  textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
+                  onChanged: onChanged,
+                  style: styleFor(textController.text, size),
+                  padding: EdgeInsets.zero,
+                  decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                ),
+              ),
+            ),
+            Container(height: 2, color: theme.colorScheme.primary),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(label, style: theme.textTheme.small, textAlign: TextAlign.center),
-      ],
-    );
-  }
-}
+      );
+    }
 
-/// Same look as [_BigQuantityField] for the one case a quantity isn't
-/// editable (a unit is always issued in full) - a fixed number, not a field.
-class _BigQuantityDisplay extends StatelessWidget {
-  const _BigQuantityDisplay({required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = ShadTheme.of(context);
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Text(
-            value,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.h1.copyWith(fontWeight: FontWeight.w700),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(t.operations.material, style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                const SizedBox(height: 4),
+                Text(op.itemNo, style: theme.textTheme.h3.copyWith(fontSize: 20, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(
+                  op.loading ? t.operations.loadingName : op.itemName,
+                  style: theme.textTheme.muted.copyWith(fontSize: 16),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: theme.textTheme.small, textAlign: TextAlign.center),
-      ],
+          divider,
+          field(
+            label: t.operations.quantityLabel,
+            textController: quantityController,
+            focusNode: quantityFocusNode,
+            autofocus: true,
+            keyboardType: numericKeyboardType(ref),
+            onChanged: controller.updateQuantity,
+            size: 34,
+          ),
+          field(
+            label: t.operations.location,
+            textController: locationController,
+            onChanged: controller.updateLocation,
+            placeholder: defaultReceiveLocation,
+            size: 26,
+            isLast: !op.trackedIndividually,
+          ),
+          if (op.trackedIndividually)
+            field(
+              label: t.operations.unitOptional,
+              textController: unitIdController,
+              onChanged: controller.updateUnitId,
+              size: 26,
+              isLast: true,
+            ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 }

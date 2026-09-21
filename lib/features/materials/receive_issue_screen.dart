@@ -5,9 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
+import '../../core/api/models/sm_item.dart';
+import '../../core/api/sm_catalog_api.dart';
 import '../../core/scanner/barcode_scanner_service.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
+import '../../widgets/enter_to_next.dart';
+import '../../widgets/field_scroll_padding.dart';
 import 'materials_providers.dart';
 import 'receive_issue_controller.dart';
 import 'receive_issue_models.dart';
@@ -45,18 +49,76 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     });
   }
 
-  void _submitManualEntry() {
-    final code = _manualEntryController.text.trim();
-    if (code.isEmpty) return;
+  /// Items matching what's typed so far: the typed text anywhere in the item
+  /// number - or, when it isn't only digits, in the name. Przyjęcie looks in
+  /// the whole catalog (anything can be received), Wydanie only in what is in
+  /// stock. Read from the lists already loaded; the scan that follows a pick
+  /// re-reads the item from the server as always.
+  List<({String itemNo, String itemName})> _suggestions() {
+    final query = _manualEntryController.text.trim().toLowerCase();
+    if (query.length < 2) return const [];
+    final byName = query.contains(RegExp(r'[^0-9]'));
+    final mode = ref.read(receiveIssueControllerProvider).mode;
+    final all = mode == FlowMode.issue
+        ? [
+            for (final item in ref.read(smItemsListProvider).value ?? const <SmItem>[])
+              (itemNo: item.itemNo, itemName: item.itemName),
+          ]
+        : [
+            for (final entry in ref.read(smCatalogListProvider).value ?? const <SmCatalogItem>[])
+              (itemNo: entry.itemNo, itemName: entry.itemName),
+          ];
+    final matches = all.where(
+      (e) => e.itemNo.toLowerCase().contains(query) || (byName && e.itemName.toLowerCase().contains(query)),
+    );
+    // Item numbers starting with the text first.
+    final sorted = matches.toList()
+      ..sort((a, b) {
+        final aStarts = a.itemNo.toLowerCase().startsWith(query) ? 0 : 1;
+        final bStarts = b.itemNo.toLowerCase().startsWith(query) ? 0 : 1;
+        return aStarts != bStarts ? aStarts - bStarts : a.itemNo.compareTo(b.itemNo);
+      });
+    return sorted.take(8).toList();
+  }
+
+  void _scanItemNo(String code) {
     ref.read(barcodeScannerServiceProvider).simulateScan(code);
     _manualEntryController.clear();
   }
 
-  void _handleCode(String code) {
-    if (!mounted) return;
+  void _submitManualEntry() {
+    final code = _manualEntryController.text.trim();
+    if (code.isEmpty) return;
+    // A partial number that leaves exactly one candidate is that item.
+    final matches = _suggestions();
+    if (matches.length == 1 && matches.first.itemNo != code) {
+      _scanItemNo(matches.first.itemNo);
+      return;
+    }
+    _scanItemNo(code);
+  }
+
+  /// One scan at a time - the item is re-read from the server (a moment,
+  /// shown as a loading bar), and a second trigger pull meanwhile must not
+  /// start another.
+  bool _scanning = false;
+
+  Future<void> _handleCode(String code) async {
+    if (!mounted || _scanning) return;
     final t = context.t;
     FocusManager.instance.primaryFocus?.unfocus();
-    final outcome = ref.read(receiveIssueControllerProvider.notifier).scan(code);
+    if (ref.read(receiveIssueControllerProvider).mode == FlowMode.receive) return _handleReceive(code);
+    setState(() => _scanning = true);
+    final ScanOutcome outcome;
+    try {
+      outcome = await ref.read(receiveIssueControllerProvider.notifier).scan(code);
+    } catch (_) {
+      if (mounted) ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastLoadFailed)));
+      return;
+    } finally {
+      if (mounted) setState(() => _scanning = false);
+    }
+    if (!mounted) return;
     switch (outcome) {
       case ScanStarted():
         context.push(materialsSmOperationPath);
@@ -66,6 +128,32 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
       case ScanNeedsPick():
         context.push(materialsSmSpoolsPath);
+    }
+  }
+
+  /// Przyjęcie: the operation opens right away with the scanned item number;
+  /// the name (and the rest) is filled in as soon as the server answers. An
+  /// item that turns out to be unknown closes it again with a message.
+  Future<void> _handleReceive(String code) async {
+    final t = context.t;
+    final controller = ref.read(receiveIssueControllerProvider.notifier);
+    if (controller.startReceive(code) is! ScanStarted) {
+      ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
+      return;
+    }
+    _scanning = true;
+    context.push(materialsSmOperationPath);
+    final toaster = ShadToaster.of(context);
+    try {
+      if (await controller.resolveReceive() is ScanUnknown) {
+        controller.cancelCurrent();
+        toaster.show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
+      }
+    } catch (_) {
+      controller.cancelCurrent();
+      toaster.show(ShadToast.destructive(description: Text(t.operations.toastLoadFailed)));
+    } finally {
+      _scanning = false;
     }
   }
 
@@ -82,6 +170,8 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     final t = context.t;
     ref.watch(smItemsListProvider);
     ref.watch(smCatalogListProvider);
+    // Rebuild on a mode switch too: the suggestions come from a different list.
+    ref.watch(receiveIssueControllerProvider.select((s) => s.mode));
 
     return Column(
       children: [
@@ -90,15 +180,66 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
           child: Row(
             children: [
               Expanded(
-                child: ShadInput(
-                  controller: _manualEntryController,
-                  placeholder: Text(t.operations.scanPlaceholder),
-                  onSubmitted: (_) => _submitManualEntry(),
+                child: EnterToNext(
+                  isLast: true,
+                  onLast: _submitManualEntry,
+                  child: ShadInput(
+                    scrollPadding: kFieldScrollPadding,
+                    controller: _manualEntryController,
+                    placeholder: Text(t.operations.scanPlaceholder),
+                    onSubmitted: (_) => _submitManualEntry(),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               ShadButton(onPressed: _submitManualEntry, child: Icon(LucideIcons.scanLine)),
             ],
+          ),
+        ),
+        if (_scanning)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const ShadProgress(),
+                const SizedBox(height: 8),
+                Text(t.operations.loadingStock, style: ShadTheme.of(context).textTheme.muted),
+              ],
+            ),
+          ),
+        // Matching items under the input as it's typed - tap one to open it.
+        Expanded(
+          child: ListenableBuilder(
+            listenable: _manualEntryController,
+            builder: (context, _) {
+              final matches = _suggestions();
+              if (matches.isEmpty) return const SizedBox.shrink();
+              final theme = ShadTheme.of(context);
+              return ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                itemCount: matches.length,
+                separatorBuilder: (_, __) => Container(height: 1, color: theme.colorScheme.border),
+                itemBuilder: (context, index) => GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _scanItemNo(matches[index].itemNo),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          matches[index].itemNo,
+                          style: theme.textTheme.p.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(matches[index].itemName, style: theme.textTheme.muted.copyWith(fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

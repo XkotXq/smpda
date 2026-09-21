@@ -10,15 +10,34 @@ class AuthSession {
     required this.token,
     required this.refreshToken,
     required this.name,
+    required this.userId,
   });
 
   final String token;
   final String refreshToken;
 
   /// Display name (wpsApi's `name` - CIP's own `user_info.employee`,
-  /// falling back to whatever username was typed) - this is what gets
-  /// attached to every sm_operations entry as the operator.
+  /// falling back to whatever username was typed).
   final String name;
+
+  /// CIP username (wpsApi's `userId`) - the employee number. This, not
+  /// [name], is what gets attached to every sm_operations entry as the operator.
+  final String userId;
+}
+
+/// A failed login/refresh. [code] is wpsApi's stable error code
+/// (invalid_credentials, cip_unreachable, too_many_attempts, ...) - the
+/// screen turns it into a message in the language the user picked, because
+/// CIP's own text is Chinese. Null when the server couldn't be reached at all.
+class AuthFailure implements Exception {
+  AuthFailure(this.code, this.message);
+  final String? code;
+
+  /// wpsApi's Polish fallback message, for a code this app doesn't know.
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 /// POST /api/auth/login - proxies the company's legacy CIP system's
@@ -30,9 +49,8 @@ class AuthApi {
   AuthApi(this._dio);
   final Dio _dio;
 
-  /// Throws a [String] error message (already the server's own Polish
-  /// wording, e.g. "Nieprawidłowy login lub hasło") on a 401 - LoginScreen
-  /// shows it as-is rather than wrapping it in something generic.
+  /// Throws an [AuthFailure] - LoginScreen shows its `code` in the user's
+  /// language rather than the server's text.
   Future<AuthSession> login(String username, String password) async {
     try {
       final res = await _dio.post<Map<String, dynamic>>(
@@ -44,12 +62,13 @@ class AuthApi {
         token: data['token'] as String,
         refreshToken: data['refreshToken'] as String? ?? '',
         name: data['name'] as String? ?? username,
+        userId: data['userId'] as String? ?? username,
       );
     } on DioException catch (e) {
-      final serverMessage = e.response?.data is Map
-          ? (e.response!.data as Map)['error'] as String?
-          : null;
-      throw serverMessage ?? 'Nie udało się połączyć z serwerem.';
+      final body = e.response?.data;
+      final serverMessage = body is Map ? body['error'] as String? : null;
+      final code = body is Map ? body['code'] as String? : null;
+      throw AuthFailure(code, serverMessage ?? 'Nie udało się połączyć z serwerem.');
     }
   }
 }

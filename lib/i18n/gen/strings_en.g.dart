@@ -44,6 +44,7 @@ class TranslationsEn with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$operations$en operations = _Translations$operations$en._(_root);
 	@override late final _Translations$dashboard$en dashboard = _Translations$dashboard$en._(_root);
 	@override late final _Translations$frp$en frp = _Translations$frp$en._(_root);
+	@override late final _Translations$history$en history = _Translations$history$en._(_root);
 }
 
 // Path: login
@@ -57,6 +58,7 @@ class _Translations$login$en implements Translations$login$pl {
 	@override String get password => 'Password';
 	@override String get submit => 'Sign in';
 	@override String get submitting => 'Signing in...';
+	@override late final _Translations$login$errors$en errors = _Translations$login$errors$en._(_root);
 }
 
 // Path: settings
@@ -73,6 +75,8 @@ class _Translations$settings$en implements Translations$settings$pl {
 	@override String get apiToken => 'API token';
 	@override String get save => 'Save';
 	@override String get language => 'Language';
+	@override String get numericKeyboard => 'On-screen keyboard for number fields';
+	@override String get numericKeyboardHint => 'Turn off if you type quantities on the scanner\'s physical keypad.';
 	@override late final _Translations$settings$theme$en theme = _Translations$settings$theme$en._(_root);
 }
 
@@ -104,15 +108,23 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get noSpoolNumber => 'No spool number';
 	@override String get noSpoolTag => 'no spool no.';
 	@override String get unitLabel => 'Spool';
-	@override String get unitOptional => 'Spool number (blank = unmarked)';
+	@override String get unitOptional => 'Spool number';
 	@override String get quantityLabel => 'Quantity';
 	@override String available({required Object value}) => 'Available: ${value}';
 	@override String get confirm => 'Confirm';
 	@override String get cancel => 'Cancel';
 	@override String get submitting => 'Saving...';
 	@override String get submitted => 'Saved.';
+	@override String issued({required Object name}) => 'Issued ${name}.';
+	@override String received({required Object name}) => 'Received ${name}.';
+	@override String get errorNotInStock => 'This material is no longer in stock.';
+	@override String get errorUnitGone => 'This spool has already been issued.';
+	@override String errorNotEnough({required Object available}) => 'Only ${available} in stock.';
+	@override String get loadingStock => 'Loading stock from the server…';
+	@override String get toastLoadFailed => 'Could not load stock from the server.';
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
+	@override String get loadingName => 'Loading name…';
 }
 
 // Path: dashboard
@@ -139,7 +151,44 @@ class _Translations$frp$en implements Translations$frp$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get placeholder => 'The FRP section is under construction.';
+	@override String get listTitle => 'To label with a spool number';
+	@override String get listEmpty => 'No FRP without a spool number.';
+	@override String get retry => 'Try again';
+	@override String get toastNotPending => 'This FRP has no quantity without a spool number.';
+	@override String get labelTitle => 'Spool labeling';
+	@override String get toLabel => 'To label';
+	@override String get batch => 'Batch';
+	@override String get spoolNumber => 'Spool number';
+	@override String get length => 'Length';
+	@override String labeled({required Object name, required Object unitId}) => 'Labeled ${name}: ${unitId}.';
+	@override String numberTaken({required Object taken, required Object next}) => 'Number ${taken} was already taken - new number: ${next}.';
+}
+
+// Path: history
+class _Translations$history$en implements Translations$history$pl {
+	_Translations$history$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get issuesTitle => 'My issues';
+	@override String get labelingsTitle => 'My labelings';
+	@override String get employee => 'Employee number';
+	@override String get empty => 'No entries.';
+	@override String get refresh => 'Refresh';
+}
+
+// Path: login.errors
+class _Translations$login$errors$en implements Translations$login$errors$pl {
+	_Translations$login$errors$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get invalidCredentials => 'Wrong username or password.';
+	@override String get cipUnreachable => 'Could not reach the CIP system.';
+	@override String get tooManyAttempts => 'Too many login attempts. Try again in a few minutes.';
+	@override String get serverUnreachable => 'Could not reach the server. Check the address in Settings.';
 }
 
 // Path: settings.theme
@@ -202,6 +251,10 @@ extension on TranslationsEn {
 			'login.password' => 'Password',
 			'login.submit' => 'Sign in',
 			'login.submitting' => 'Signing in...',
+			'login.errors.invalidCredentials' => 'Wrong username or password.',
+			'login.errors.cipUnreachable' => 'Could not reach the CIP system.',
+			'login.errors.tooManyAttempts' => 'Too many login attempts. Try again in a few minutes.',
+			'login.errors.serverUnreachable' => 'Could not reach the server. Check the address in Settings.',
 			'settings.title' => 'Settings',
 			'settings.loggedInAs' => 'Signed in as',
 			'settings.logout' => 'Sign out',
@@ -209,6 +262,8 @@ extension on TranslationsEn {
 			'settings.apiToken' => 'API token',
 			'settings.save' => 'Save',
 			'settings.language' => 'Language',
+			'settings.numericKeyboard' => 'On-screen keyboard for number fields',
+			'settings.numericKeyboardHint' => 'Turn off if you type quantities on the scanner\'s physical keypad.',
 			'settings.theme.label' => 'Theme',
 			'settings.theme.system' => 'System',
 			'settings.theme.light' => 'Light',
@@ -225,15 +280,23 @@ extension on TranslationsEn {
 			'operations.noSpoolNumber' => 'No spool number',
 			'operations.noSpoolTag' => 'no spool no.',
 			'operations.unitLabel' => 'Spool',
-			'operations.unitOptional' => 'Spool number (blank = unmarked)',
+			'operations.unitOptional' => 'Spool number',
 			'operations.quantityLabel' => 'Quantity',
 			'operations.available' => ({required Object value}) => 'Available: ${value}',
 			'operations.confirm' => 'Confirm',
 			'operations.cancel' => 'Cancel',
 			'operations.submitting' => 'Saving...',
 			'operations.submitted' => 'Saved.',
+			'operations.issued' => ({required Object name}) => 'Issued ${name}.',
+			'operations.received' => ({required Object name}) => 'Received ${name}.',
+			'operations.errorNotInStock' => 'This material is no longer in stock.',
+			'operations.errorUnitGone' => 'This spool has already been issued.',
+			'operations.errorNotEnough' => ({required Object available}) => 'Only ${available} in stock.',
+			'operations.loadingStock' => 'Loading stock from the server…',
+			'operations.toastLoadFailed' => 'Could not load stock from the server.',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
+			'operations.loadingName' => 'Loading name…',
 			'dashboard.appTitle' => 'Stock Manager',
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',
@@ -247,7 +310,22 @@ extension on TranslationsEn {
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',
 			'dashboard.frp.title' => 'FRP',
 			'dashboard.frp.subtitle' => 'Spool number marking',
-			'frp.placeholder' => 'The FRP section is under construction.',
+			'frp.listTitle' => 'To label with a spool number',
+			'frp.listEmpty' => 'No FRP without a spool number.',
+			'frp.retry' => 'Try again',
+			'frp.toastNotPending' => 'This FRP has no quantity without a spool number.',
+			'frp.labelTitle' => 'Spool labeling',
+			'frp.toLabel' => 'To label',
+			'frp.batch' => 'Batch',
+			'frp.spoolNumber' => 'Spool number',
+			'frp.length' => 'Length',
+			'frp.labeled' => ({required Object name, required Object unitId}) => 'Labeled ${name}: ${unitId}.',
+			'frp.numberTaken' => ({required Object taken, required Object next}) => 'Number ${taken} was already taken - new number: ${next}.',
+			'history.issuesTitle' => 'My issues',
+			'history.labelingsTitle' => 'My labelings',
+			'history.employee' => 'Employee number',
+			'history.empty' => 'No entries.',
+			'history.refresh' => 'Refresh',
 			_ => null,
 		};
 	}

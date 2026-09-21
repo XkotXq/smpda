@@ -11,6 +11,7 @@ const _kAuthTokenKey = 'smpda.authToken';
 const _kAuthRefreshTokenKey = 'smpda.authRefreshToken';
 const _kThemeModeKey = 'smpda.themeMode';
 const _kLocaleCodeKey = 'smpda.localeCode';
+const _kShowNumericKeyboardKey = 'smpda.showNumericKeyboard';
 
 ThemeMode _themeModeFromString(String? value) {
   return ThemeMode.values.firstWhere(
@@ -35,6 +36,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
       authRefreshToken: prefs.getString(_kAuthRefreshTokenKey) ?? '',
       themeMode: _themeModeFromString(prefs.getString(_kThemeModeKey)),
       localeCode: prefs.getString(_kLocaleCodeKey) ?? 'pl',
+      showNumericKeyboard: prefs.getBool(_kShowNumericKeyboardKey) ?? false,
     );
   }
 
@@ -47,6 +49,7 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
     await prefs.setString(_kAuthRefreshTokenKey, next.authRefreshToken);
     await prefs.setString(_kThemeModeKey, next.themeMode.name);
     await prefs.setString(_kLocaleCodeKey, next.localeCode);
+    await prefs.setBool(_kShowNumericKeyboardKey, next.showNumericKeyboard);
     state = AsyncData(next);
   }
 
@@ -88,6 +91,11 @@ class AppSettingsNotifier extends AsyncNotifier<AppSettings> {
   Future<void> setThemeMode(ThemeMode mode) async {
     final current = state.value ?? const AppSettings();
     await _persist(current.copyWith(themeMode: mode));
+  }
+
+  Future<void> setShowNumericKeyboard(bool value) async {
+    final current = state.value ?? const AppSettings();
+    await _persist(current.copyWith(showNumericKeyboard: value));
   }
 
   Future<void> setLocale(String localeCode) async {

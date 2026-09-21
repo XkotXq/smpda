@@ -9,9 +9,12 @@ import '../i18n/gen/strings.g.dart';
 /// (ghost button, card background) rather than a Material AppBar, which
 /// would look out of place next to shadcn_ui everywhere else.
 class SectionHeader extends StatelessWidget implements PreferredSizeWidget {
-  const SectionHeader({super.key, required this.title});
+  const SectionHeader({super.key, required this.title, this.actions = const []});
 
   final String title;
+
+  /// Buttons at the right end of the bar (e.g. an icon-only history button).
+  final List<Widget> actions;
 
   @override
   Size get preferredSize => const Size.fromHeight(56);
@@ -35,7 +38,9 @@ class SectionHeader extends StatelessWidget implements PreferredSizeWidget {
                 child: Icon(LucideIcons.arrowLeft, semanticLabel: context.t.nav.back),
               ),
               const SizedBox(width: 4),
-              Text(title, style: theme.textTheme.h4),
+              Expanded(child: Text(title, style: theme.textTheme.h4)),
+              ...actions,
+              const SizedBox(width: 4),
             ],
           ),
         ),
