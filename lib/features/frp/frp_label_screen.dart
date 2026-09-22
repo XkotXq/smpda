@@ -201,31 +201,42 @@ class _FrpLabelScreenState extends ConsumerState<FrpLabelScreen> {
                       ),
                     ),
                     divider,
+                    // Centered, not left-aligned like the fields above - this
+                    // number is the one thing the operator needs to read back
+                    // and write on the spool, so it gets the emphasis.
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(t.frp.spoolNumber, style: theme.textTheme.muted.copyWith(fontSize: 12)),
-                          const SizedBox(height: 4),
-                          // The number the server proposes, editable - checked
-                          // (must be free) when confirmed.
-                          EnterToNext(
-                            child: ShadInput(
-                              scrollPadding: kFieldScrollPadding,
-                              controller: _unitController,
-                              textCapitalization: TextCapitalization.characters,
-                              style: theme.textTheme.h1.copyWith(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w700,
-                                height: 1.2,
-                              ),
-                              padding: EdgeInsets.zero,
-                              decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              t.frp.spoolNumber,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.muted.copyWith(fontSize: 12),
                             ),
-                          ),
-                          Container(height: 2, color: theme.colorScheme.primary),
-                        ],
+                            const SizedBox(height: 4),
+                            // The number the server proposes, editable - checked
+                            // (must be free) when confirmed.
+                            EnterToNext(
+                              child: ShadInput(
+                                scrollPadding: kFieldScrollPadding,
+                                controller: _unitController,
+                                textCapitalization: TextCapitalization.characters,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.h1.copyWith(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.2,
+                                ),
+                                padding: EdgeInsets.zero,
+                                decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
+                              ),
+                            ),
+                            Container(height: 2, color: theme.colorScheme.primary),
+                          ],
+                        ),
                       ),
                     ),
                     Padding(
