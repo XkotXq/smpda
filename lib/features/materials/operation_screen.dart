@@ -182,21 +182,11 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: Row(
-                    children: [
-                      ShadButton.outline(
-                        onPressed: state.submitting ? null : _cancel,
-                        child: Text(t.operations.cancel),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ShadButton(
-                          enabled: !state.submitting && !loading,
-                          onPressed: state.submitting || loading ? null : _confirm,
-                          child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
-                        ),
-                      ),
-                    ],
+                  child: ShadButton(
+                    width: double.infinity,
+                    enabled: !state.submitting && !loading,
+                    onPressed: state.submitting || loading ? null : _confirm,
+                    child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
                   ),
                 ),
               ),
