@@ -231,27 +231,27 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   }
 
   /// The receipt for [itemNo]: an item already in stock, else a catalog entry
-  /// (read fresh - someone may have just added it in wps), else null.
+  /// (read fresh - someone may have just added it in wps), else null. Whether
+  /// this material is spool-tracked comes from the catalog whenever it has an
+  /// entry for this item number - not from whatever's already stored on the
+  /// stock item - so correcting an item's category in wps's catalog editor
+  /// takes effect on the very next receipt without having to fix already-
+  /// received stock by hand. Falls back to the stock item's own flag only
+  /// when the catalog has nothing for this item number (predates the
+  /// catalog, or was received under a number the catalog import never
+  /// covered). submit() honors this same resolved value, not the item's
+  /// stored flag, so what's shown here is what actually gets saved.
   Future<ReceiveOperation?> _lookupReceive(String itemNo, String? productBatch) async {
     final stockItem = await _fetchItem(itemNo);
-    if (stockItem != null) {
-      return ReceiveOperation(
-        itemNo: stockItem.itemNo,
-        itemName: stockItem.itemName,
-        locationCode: stockItem.locationCode,
-        trackedIndividually: stockItem.trackedIndividually,
-        productBatch: productBatch,
-      );
-    }
-
     final catalog = await ref.refresh(smCatalogListProvider.future);
     final catalogItem = catalog.where((entry) => entry.itemNo == itemNo).firstOrNull;
-    if (catalogItem == null) return null;
+    if (stockItem == null && catalogItem == null) return null;
+
     return ReceiveOperation(
-      itemNo: catalogItem.itemNo,
-      itemName: catalogItem.itemName,
-      locationCode: '',
-      trackedIndividually: catalogItem.individualUnits,
+      itemNo: itemNo,
+      itemName: stockItem?.itemName ?? catalogItem!.itemName,
+      locationCode: stockItem?.locationCode ?? '',
+      trackedIndividually: catalogItem?.individualUnits ?? stockItem!.trackedIndividually,
       productBatch: productBatch,
     );
   }
@@ -368,16 +368,36 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       SmOperation operation;
 
       if (op is ReceiveOperation) {
-        item =
-            existing ??
-            SmItem(
-              itemNo: op.itemNo,
-              itemName: op.itemName,
-              locationCode: '',
-              note: '-',
-              trackedIndividually: op.trackedIndividually,
-              totalQuantity: op.trackedIndividually ? null : '0',
-            );
+        // op.trackedIndividually is what _lookupReceive resolved against the
+        // catalog (see its own comment) - honored here too, so a catalog
+        // correction actually changes how this receipt is saved instead of
+        // being silently discarded because the stock item on record still
+        // carries the old flag. Only ever upgrades aggregate -> individually
+        // tracked (any leftover totalQuantity becomes the new
+        // pendingQuantity - still unassigned to a spool, nothing lost) -
+        // never the other way, so real per-unit data already on the item is
+        // never collapsed back into one number just because the catalog
+        // entry changed.
+        final upgrading = existing != null && op.trackedIndividually && !existing.trackedIndividually;
+        item = existing == null
+            ? SmItem(
+                itemNo: op.itemNo,
+                itemName: op.itemName,
+                locationCode: '',
+                note: '-',
+                trackedIndividually: op.trackedIndividually,
+                totalQuantity: op.trackedIndividually ? null : '0',
+              )
+            : upgrading
+                ? SmItem(
+                    itemNo: existing.itemNo,
+                    itemName: existing.itemName,
+                    locationCode: existing.locationCode,
+                    note: existing.note,
+                    trackedIndividually: true,
+                    pendingQuantity: existing.totalQuantity,
+                  )
+                : existing;
 
         final unitId = op.unitId.trim();
         if (!item.trackedIndividually) {
