@@ -58,7 +58,6 @@
     "loadingStock": "Loading stock from the server…",
     "toastLoadFailed": "Could not load stock from the server.",
     "toastOffline": "No connection to the server - can't scan. Check Wi-Fi and try again.",
-    "toastCatalogUpdated": "This material's details were updated in the catalog.",
     "toastUnknown": "Unknown code - no matching material or unit.",
     "toastNotIssuable": "No available quantity of this material to issue.",
     "loadingName": "Loading name…"

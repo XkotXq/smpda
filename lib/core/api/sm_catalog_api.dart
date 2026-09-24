@@ -36,15 +36,16 @@ class SmCatalogApi {
         .toList();
   }
 
-  /// The catalog's change counter (wpsApi bumps it on every insert/update/
-  /// delete). null when it can't be read - an older server without the
-  /// endpoint, or no connection - which callers treat as "unknown, reload".
-  Future<int?> version() async {
+  /// One entry, read fresh from the server: the material's name and whether it
+  /// is split into spools. null when the catalog doesn't know that item number.
+  Future<SmCatalogItem?> get(String itemNo) async {
     try {
-      final res = await _dio.get<Map<String, dynamic>>('/sm-catalog/version');
-      return (res.data?['version'] as num?)?.toInt();
-    } catch (_) {
-      return null;
+      final res = await _dio.get<Map<String, dynamic>>('/sm-catalog/${Uri.encodeComponent(itemNo)}');
+      final data = res.data;
+      return data == null ? null : SmCatalogItem.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) return null;
+      rethrow;
     }
   }
 }

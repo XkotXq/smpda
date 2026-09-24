@@ -209,9 +209,6 @@ class Translations$operations$pl {
 	/// pl: 'Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.'
 	String get toastOffline => 'Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.';
 
-	/// pl: 'Dane materiału zostały zaktualizowane w katalogu.'
-	String get toastCatalogUpdated => 'Dane materiału zostały zaktualizowane w katalogu.';
-
 	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
 	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
 
@@ -465,7 +462,6 @@ extension on Translations {
 			'operations.loadingStock' => 'Pobieranie stanu z serwera…',
 			'operations.toastLoadFailed' => 'Nie udało się pobrać stanu z serwera.',
 			'operations.toastOffline' => 'Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.',
-			'operations.toastCatalogUpdated' => 'Dane materiału zostały zaktualizowane w katalogu.',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'operations.loadingName' => 'Pobieranie nazwy…',

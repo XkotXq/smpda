@@ -12,7 +12,6 @@ import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../widgets/enter_to_next.dart';
 import '../../widgets/field_scroll_padding.dart';
-import 'materials_providers.dart';
 import 'receive_issue_controller.dart';
 import 'receive_issue_models.dart';
 
@@ -105,16 +104,6 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
           !next.loading &&
           _locationController.text.trim().isEmpty) {
         _locationController.text = next.location;
-      }
-    });
-    // The catalog entry of the item on screen changed on the server (see
-    // SmCatalogNotifier): take its new name / per-spool flag over, keep what
-    // was typed, and say so.
-    ref.listen(smCatalogListProvider, (_, next) {
-      final entry = next.value?.where((e) => e.itemNo == ref.read(receiveIssueControllerProvider).current?.itemNo).firstOrNull;
-      if (entry == null) return;
-      if (ref.read(receiveIssueControllerProvider.notifier).applyCatalogEntry(entry)) {
-        ShadToaster.of(context).show(ShadToast(description: Text(t.operations.toastCatalogUpdated)));
       }
     });
     // Nothing to confirm until the item is known.

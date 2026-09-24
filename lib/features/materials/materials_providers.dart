@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/sm_catalog_api.dart';
@@ -54,42 +52,9 @@ class SmItemsListNotifier extends AsyncNotifier<List<SmItem>> {
 
 final smItemsListProvider = AsyncNotifierProvider<SmItemsListNotifier, List<SmItem>>(SmItemsListNotifier.new);
 
-/// sm_catalog, kept in memory and refreshed whenever it changes on the server.
-/// wpsApi bumps a version counter on every catalog change; this asks for that
-/// one number (every 30s while the app runs, and right before a scan needs the
-/// catalog - see [refreshIfChanged]) and downloads the list only when the
-/// number moved. So a receipt never pays for a full list download, and a
-/// corrected name or per-spool flag reaches the PDA without a restart.
-class SmCatalogNotifier extends AsyncNotifier<List<SmCatalogItem>> {
-  int? _version;
-
-  @override
-  Future<List<SmCatalogItem>> build() async {
-    final api = ref.watch(smCatalogApiProvider);
-    _version = await api.version();
-    final timer = Timer.periodic(const Duration(seconds: 30), (_) => refreshIfChanged());
-    ref.onDispose(timer.cancel);
-    return api.list();
-  }
-
-  /// Downloads the list again when the server's version differs from the one
-  /// this copy was read at. No connection: keeps the copy it has. A server
-  /// that doesn't have the version endpoint yet (version always null) is
-  /// reloaded every time, as before this existed.
-  Future<void> refreshIfChanged() async {
-    final api = ref.read(smCatalogApiProvider);
-    final latest = await api.version();
-    if (latest != null && latest == _version) return;
-    if (latest == null && _version != null) return;
-    try {
-      final list = await api.list();
-      if (!ref.mounted) return;
-      _version = latest;
-      state = AsyncData(list);
-    } catch (_) {
-      // Keep the copy that is already here.
-    }
-  }
-}
-
-final smCatalogListProvider = AsyncNotifierProvider<SmCatalogNotifier, List<SmCatalogItem>>(SmCatalogNotifier.new);
+/// sm_catalog, read once when first needed - it changes once a year or two, so
+/// a restart is enough to pick a change up. Feeds the manual-entry suggestions
+/// only; a scan asks the server about that one item (see SmCatalogApi.get).
+final smCatalogListProvider = FutureProvider<List<SmCatalogItem>>((ref) {
+  return ref.watch(smCatalogApiProvider).list();
+});
