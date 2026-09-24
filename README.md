@@ -119,7 +119,19 @@ review later.
   loading.
 - `materials_providers.dart` - `smItemsListProvider` (`AsyncNotifierProvider`,
   patched locally after every submit, see above) and `smCatalogListProvider`
-  (`FutureProvider`) the controller resolves scans against.
+  (`FutureProvider`, read once - it only feeds the manual-entry suggestions;
+  the catalog changes once a year or two). A receipt asks the server about
+  the one item instead: `startReceive` opens the screen at once, then
+  `resolveReceive` reads the stock row and `GET /sm-catalog/{itemNo}`
+  together. The catalog names the material and its `individualUnits` flag
+  decides whether the spool-number field appears; wpsApi also fills the name
+  from the catalog on save. An aggregate item that already has stock is
+  upgraded to per-spool on submit when the catalog says so (its total becomes
+  the pending "Brak" quantity) - never downgraded.
+- `lib/widgets/require_online.dart` - every scan (Przyjęcie/Wydanie and the
+  FRP module) first makes a fresh `GET /health` (`isServerReachable` in
+  `core/api/server_status.dart`); with no answer the scan is refused with a
+  toast instead of failing halfway. There is no offline mode by decision.
 - `receive_issue_screen.dart` - just the scan/manual-entry field (reuses
   `BarcodeScannerService`) and an idle message; pushes
   `materialsSmOperationPath` once a scan resolves. Picker `showShadSheet`
