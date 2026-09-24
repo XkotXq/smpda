@@ -57,6 +57,8 @@
     "errorNotEnough": "Na stanie jest tylko {available}.",
     "loadingStock": "Pobieranie stanu z serwera…",
     "toastLoadFailed": "Nie udało się pobrać stanu z serwera.",
+    "toastOffline": "Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.",
+    "toastCatalogUpdated": "Dane materiału zostały zaktualizowane w katalogu.",
     "toastUnknown": "Nieznany kod - nie znaleziono materiału ani jednostki.",
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania.",
     "loadingName": "Pobieranie nazwy…"

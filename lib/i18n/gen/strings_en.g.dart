@@ -122,6 +122,8 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String errorNotEnough({required Object available}) => 'Only ${available} in stock.';
 	@override String get loadingStock => 'Loading stock from the server…';
 	@override String get toastLoadFailed => 'Could not load stock from the server.';
+	@override String get toastOffline => 'No connection to the server - can\'t scan. Check Wi-Fi and try again.';
+	@override String get toastCatalogUpdated => 'This material\'s details were updated in the catalog.';
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 	@override String get loadingName => 'Loading name…';
@@ -294,6 +296,8 @@ extension on TranslationsEn {
 			'operations.errorNotEnough' => ({required Object available}) => 'Only ${available} in stock.',
 			'operations.loadingStock' => 'Loading stock from the server…',
 			'operations.toastLoadFailed' => 'Could not load stock from the server.',
+			'operations.toastOffline' => 'No connection to the server - can\'t scan. Check Wi-Fi and try again.',
+			'operations.toastCatalogUpdated' => 'This material\'s details were updated in the catalog.',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'operations.loadingName' => 'Loading name…',

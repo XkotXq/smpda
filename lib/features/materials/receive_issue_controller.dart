@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/models/sm_item.dart';
+import '../../core/api/sm_catalog_api.dart';
 import '../../core/api/models/sm_operation.dart';
 import '../../core/api/models/sm_unit.dart';
 import '../../core/api/sm_items_api.dart';
@@ -242,18 +243,47 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   /// covered). submit() honors this same resolved value, not the item's
   /// stored flag, so what's shown here is what actually gets saved.
   Future<ReceiveOperation?> _lookupReceive(String itemNo, String? productBatch) async {
-    final stockItem = await _fetchItem(itemNo);
-    final catalog = await ref.refresh(smCatalogListProvider.future);
+    // The stock read and the catalog's version check are independent - asked
+    // together. The check is one small request (the list is downloaded only
+    // when the catalog changed, see SmCatalogNotifier), not a full list per scan.
+    final stockRead = _fetchItem(itemNo);
+    final catalogCheck = ref.read(smCatalogListProvider.notifier).refreshIfChanged();
+    final stockItem = await stockRead;
+    await catalogCheck;
+    final catalog = await ref.read(smCatalogListProvider.future);
     final catalogItem = catalog.where((entry) => entry.itemNo == itemNo).firstOrNull;
     if (stockItem == null && catalogItem == null) return null;
 
     return ReceiveOperation(
       itemNo: itemNo,
-      itemName: stockItem?.itemName ?? catalogItem!.itemName,
+      // The catalog names a material - wpsApi refuses to save one under a
+      // different name - so its name wins over the stock row's copy.
+      itemName: catalogItem?.itemName ?? stockItem!.itemName,
       locationCode: stockItem?.locationCode ?? '',
       trackedIndividually: catalogItem?.individualUnits ?? stockItem!.trackedIndividually,
       productBatch: productBatch,
     );
+  }
+
+  /// The catalog entry of the item open on the Przyjęcie screen changed on the
+  /// server (see SmCatalogNotifier): takes the new name / per-spool flag over
+  /// and keeps whatever the operator already typed. Returns whether anything
+  /// changed, so the screen knows to tell them.
+  bool applyCatalogEntry(SmCatalogItem entry) {
+    final op = state.current;
+    if (op is! ReceiveOperation || op.loading || op.itemNo != entry.itemNo) return false;
+    if (op.itemName == entry.itemName && op.trackedIndividually == entry.individualUnits) return false;
+    final updated = ReceiveOperation(
+      itemNo: op.itemNo,
+      itemName: entry.itemName,
+      locationCode: op.locationCode,
+      trackedIndividually: entry.individualUnits,
+      quantity: op.quantity,
+      unitId: op.unitId,
+      productBatch: op.productBatch,
+    )..location = op.location;
+    state = state.copyWith(current: updated);
+    return true;
   }
 
   void cancelPick() {

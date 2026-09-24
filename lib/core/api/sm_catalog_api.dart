@@ -35,6 +35,18 @@ class SmCatalogApi {
         .map((e) => SmCatalogItem.fromJson(e as Map<String, dynamic>))
         .toList();
   }
+
+  /// The catalog's change counter (wpsApi bumps it on every insert/update/
+  /// delete). null when it can't be read - an older server without the
+  /// endpoint, or no connection - which callers treat as "unknown, reload".
+  Future<int?> version() async {
+    try {
+      final res = await _dio.get<Map<String, dynamic>>('/sm-catalog/version');
+      return (res.data?['version'] as num?)?.toInt();
+    } catch (_) {
+      return null;
+    }
+  }
 }
 
 final smCatalogApiProvider = Provider<SmCatalogApi>((ref) {

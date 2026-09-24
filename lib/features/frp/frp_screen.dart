@@ -11,6 +11,7 @@ import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
 import '../../widgets/field_scroll_padding.dart';
+import '../../widgets/require_online.dart';
 import '../materials/scanned_code.dart';
 import 'frp_label_screen.dart';
 
@@ -68,6 +69,8 @@ class _FrpScreenState extends ConsumerState<FrpScreen> {
     if (scanned.raw.isEmpty) return;
     setState(() => _scanning = true);
     try {
+      // No connection: refuse the scan up front, with a message.
+      if (!await requireOnline(context, ref)) return;
       final api = ref.read(smSpoolsApiProvider);
       final pending = await api.unlabeled();
       ref.invalidate(frpPendingProvider);

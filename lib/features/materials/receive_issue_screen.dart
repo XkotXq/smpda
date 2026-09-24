@@ -12,6 +12,7 @@ import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
 import '../../widgets/enter_to_next.dart';
 import '../../widgets/field_scroll_padding.dart';
+import '../../widgets/require_online.dart';
 import 'materials_providers.dart';
 import 'receive_issue_controller.dart';
 import 'receive_issue_models.dart';
@@ -107,6 +108,12 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     if (!mounted || _scanning) return;
     final t = context.t;
     FocusManager.instance.primaryFocus?.unfocus();
+    // No connection: nothing can be read (name, stock) or saved, so the scan is
+    // refused here, with a message, instead of failing halfway through.
+    setState(() => _scanning = true);
+    final online = await requireOnline(context, ref);
+    if (mounted) setState(() => _scanning = false);
+    if (!online || !mounted) return;
     if (ref.read(receiveIssueControllerProvider).mode == FlowMode.receive) return _handleReceive(code);
     setState(() => _scanning = true);
     final ScanOutcome outcome;
