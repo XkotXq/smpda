@@ -11,7 +11,16 @@ class AuthSession {
     required this.refreshToken,
     required this.name,
     required this.userId,
+    this.expiresIn,
+    this.authorities = const [],
   });
+
+  /// What CIP allows this person (wpsApi's `authorities`) - see
+  /// lib/core/session/module_access.dart.
+  final List<String> authorities;
+
+  /// Seconds until [token] expires, when the server said (wpsApi's `expiresIn`).
+  final int? expiresIn;
 
   final String token;
   final String refreshToken;
@@ -52,17 +61,39 @@ class AuthApi {
   /// Throws an [AuthFailure] - LoginScreen shows its `code` in the user's
   /// language rather than the server's text.
   Future<AuthSession> login(String username, String password) async {
+    return _session('/auth/login', {'username': username, 'password': password}, username);
+  }
+
+  /// Trades a refresh token for a new token pair (wpsApi's POST
+  /// /api/auth/refresh) - the same person stays logged in. Throws an
+  /// [AuthFailure]; code `session_expired` means CIP refused (the refresh
+  /// token itself is dead: only a fresh login helps).
+  Future<AuthSession> refresh(String refreshToken, {required String fallbackUserId}) async {
+    final session = await _session('/auth/refresh', {'refreshToken': refreshToken}, fallbackUserId);
+    // Some servers don't rotate the refresh token - keep the one we sent.
+    return session.refreshToken.isEmpty
+        ? AuthSession(
+            token: session.token,
+            refreshToken: refreshToken,
+            name: session.name,
+            userId: session.userId,
+            expiresIn: session.expiresIn,
+            authorities: session.authorities,
+          )
+        : session;
+  }
+
+  Future<AuthSession> _session(String path, Map<String, dynamic> body, String fallbackUser) async {
     try {
-      final res = await _dio.post<Map<String, dynamic>>(
-        '/auth/login',
-        data: {'username': username, 'password': password},
-      );
+      final res = await _dio.post<Map<String, dynamic>>(path, data: body);
       final data = res.data!;
       return AuthSession(
         token: data['token'] as String,
         refreshToken: data['refreshToken'] as String? ?? '',
-        name: data['name'] as String? ?? username,
-        userId: data['userId'] as String? ?? username,
+        name: data['name'] as String? ?? fallbackUser,
+        userId: data['userId'] as String? ?? fallbackUser,
+        expiresIn: (data['expiresIn'] as num?)?.toInt(),
+        authorities: [for (final a in (data['authorities'] as List<dynamic>? ?? const [])) a.toString()],
       );
     } on DioException catch (e) {
       final body = e.response?.data;

@@ -21,20 +21,20 @@ class SmUnit {
   final String cipStatus;
 
   factory SmUnit.fromJson(Map<String, dynamic> json) => SmUnit(
-        id: json['id'] as String,
-        unitId: json['unitId'] as String? ?? '',
-        quantity: json['quantity'] as String? ?? '',
-        productBatch: json['productBatch'] as String?,
-        note: json['note'] as String?,
-        cipStatus: json['cipStatus'] as String? ?? 'match',
-      );
+    id: json['id'] as String,
+    unitId: json['unitId'] as String? ?? '',
+    quantity: json['quantity'] as String? ?? '',
+    productBatch: json['productBatch'] as String?,
+    note: json['note'] as String?,
+    cipStatus: json['cipStatus'] as String? ?? 'match',
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'unitId': unitId,
-        'quantity': quantity,
-        'productBatch': productBatch,
-        'note': note,
-        'cipStatus': cipStatus,
-      };
+    'id': id,
+    'unitId': unitId,
+    'quantity': quantity,
+    'productBatch': productBatch,
+    'note': note,
+    'cipStatus': cipStatus,
+  };
 }

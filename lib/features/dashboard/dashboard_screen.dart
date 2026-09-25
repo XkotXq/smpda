@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../core/api/server_status.dart';
+import '../../core/session/module_access.dart';
 import '../../core/session/session_providers.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
@@ -30,7 +31,6 @@ final _digitKeys = {
   LogicalKeyboardKey.numpad9: 9,
 };
 
-
 /// First screen after login (GoRouter's own `redirect`, see router.dart,
 /// sends here once AppSettings.isLoggedIn) - a picker list for this app's
 /// modules, with a status bar (operator + server reachability) at the
@@ -54,19 +54,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final theme = ShadTheme.of(context);
     final t = context.t;
+    // Only the modules this person may use, numbered 1, 2, ... in that order -
+    // a hidden one leaves no gap (the numbers are the PDA's number keys too).
     final tiles = [
-      (
-        icon: LucideIcons.arrowLeftRight,
-        title: t.dashboard.materialsSm.title,
-        subtitle: t.dashboard.materialsSm.subtitle,
-        onTap: () => context.push(materialsSmPath),
-      ),
-      (
-        icon: LucideIcons.layers,
-        title: t.dashboard.frp.title,
-        subtitle: t.dashboard.frp.subtitle,
-        onTap: () => context.push(frpPath),
-      ),
+      for (final module in ref.watch(availableModulesProvider))
+        switch (module) {
+          AppModule.materialsSm => (
+            icon: LucideIcons.arrowLeftRight,
+            title: t.dashboard.materialsSm.title,
+            subtitle: t.dashboard.materialsSm.subtitle,
+            onTap: () => context.push(materialsSmPath),
+          ),
+          AppModule.frp => (
+            icon: LucideIcons.layers,
+            title: t.dashboard.frp.title,
+            subtitle: t.dashboard.frp.subtitle,
+            onTap: () => context.push(frpPath),
+          ),
+          AppModule.orders => (
+            icon: LucideIcons.truck,
+            title: t.dashboard.orders.title,
+            subtitle: t.dashboard.orders.subtitle,
+            onTap: () => context.push(ordersPath),
+          ),
+        },
     ];
 
     return Focus(
@@ -124,7 +135,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     : const _AccountView(),
               ),
               DecoratedBox(
-                decoration: BoxDecoration(border: Border(top: BorderSide(color: theme.colorScheme.border))),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: theme.colorScheme.border)),
+                ),
                 child: Row(
                   children: [
                     _TabButton(
@@ -173,7 +186,10 @@ class _TabButton extends StatelessWidget {
             children: [
               Icon(icon, size: 22, color: color),
               const SizedBox(height: 4),
-              Text(label, style: theme.textTheme.small.copyWith(color: color, fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: theme.textTheme.small.copyWith(color: color, fontWeight: FontWeight.w600),
+              ),
             ],
           ),
         ),
@@ -195,14 +211,14 @@ class _AccountView extends ConsumerWidget {
     final online = ref.watch(serverOnlineProvider).value;
 
     Widget row(String label, Widget value) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Row(
-            children: [
-              Expanded(child: Text(label, style: theme.textTheme.muted)),
-              value,
-            ],
-          ),
-        );
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: theme.textTheme.muted)),
+          value,
+        ],
+      ),
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
@@ -222,8 +238,8 @@ class _AccountView extends ConsumerWidget {
                   color: online == null
                       ? theme.colorScheme.mutedForeground
                       : online
-                          ? const Color(0xFF34D399)
-                          : theme.colorScheme.destructive,
+                      ? const Color(0xFF34D399)
+                      : theme.colorScheme.destructive,
                 ),
               ),
               const SizedBox(width: 8),
@@ -267,7 +283,10 @@ class _DashboardRow extends StatelessWidget {
               decoration: BoxDecoration(color: theme.colorScheme.muted, borderRadius: BorderRadius.circular(10)),
               child: Text(
                 '$number',
-                style: theme.textTheme.p.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.mutedForeground),
+                style: theme.textTheme.p.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.mutedForeground,
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -279,7 +298,12 @@ class _DashboardRow extends StatelessWidget {
                 children: [
                   Text(tile.title, style: theme.textTheme.h4),
                   const SizedBox(height: 2),
-                  Text(tile.subtitle, style: theme.textTheme.muted.copyWith(fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(
+                    tile.subtitle,
+                    style: theme.textTheme.muted.copyWith(fontSize: 13),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),

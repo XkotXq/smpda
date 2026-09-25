@@ -39,20 +39,14 @@ class SmOperationsApi {
       '/sm-operations',
       data: {'entries': entries.map((e) => e.toJson()).toList()},
     );
-    return (res.data ?? [])
-        .map((e) => SmOperation.fromJson(e as Map<String, dynamic>))
-        .toList();
+    return (res.data ?? []).map((e) => SmOperation.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   /// One item's full history, oldest first - powers a "stan w czasie" style
   /// view the same way SmMaterialStockChart does on the web dashboard.
   Future<List<SmOperation>> history(String itemNo) async {
-    final res = await _dio.get<List<dynamic>>(
-      '/sm-operations/item/${Uri.encodeComponent(itemNo)}',
-    );
-    return (res.data ?? [])
-        .map((e) => SmOperation.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final res = await _dio.get<List<dynamic>>('/sm-operations/item/${Uri.encodeComponent(itemNo)}');
+    return (res.data ?? []).map((e) => SmOperation.fromJson(e as Map<String, dynamic>)).toList();
   }
 }
 

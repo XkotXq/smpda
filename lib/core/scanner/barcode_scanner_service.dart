@@ -14,9 +14,9 @@ import 'package:honeywell_scanner/honeywell_scanner.dart';
 /// emulator during development, it just never emits a scan.
 class BarcodeScannerService {
   BarcodeScannerService()
-      : _scanner = HoneywellScanner(),
-        _codeController = StreamController<String>.broadcast(),
-        _errorController = StreamController<Object>.broadcast();
+    : _scanner = HoneywellScanner(),
+      _codeController = StreamController<String>.broadcast(),
+      _errorController = StreamController<Object>.broadcast();
 
   final HoneywellScanner _scanner;
   final StreamController<String> _codeController;
@@ -59,8 +59,7 @@ class BarcodeScannerService {
   /// Only meaningful if [init] returned true - see [BarcodeScannerService]'s
   /// own doc comment about running on non-Honeywell devices.
   Future<void> pause() => _started ? _scanner.pauseScanner() : Future.value();
-  Future<void> resume() =>
-      _started ? _scanner.resumeScanner() : Future.value();
+  Future<void> resume() => _started ? _scanner.resumeScanner() : Future.value();
 
   Future<void> dispose() async {
     if (_started) await _scanner.stopScanner();

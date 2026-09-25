@@ -48,6 +48,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
 	late final Translations$dashboard$pl dashboard = Translations$dashboard$pl._(_root);
 	late final Translations$frp$pl frp = Translations$frp$pl._(_root);
 	late final Translations$history$pl history = Translations$history$pl._(_root);
+	late final Translations$orders$pl orders = Translations$orders$pl._(_root);
 }
 
 // Path: login
@@ -217,6 +218,9 @@ class Translations$operations$pl {
 
 	/// pl: 'Pobieranie nazwy…'
 	String get loadingName => 'Pobieranie nazwy…';
+
+	/// pl: 'Sesja wygasła - zaloguj się ponownie.'
+	String get errorSessionExpired => 'Sesja wygasła - zaloguj się ponownie.';
 }
 
 // Path: dashboard
@@ -245,6 +249,7 @@ class Translations$dashboard$pl {
 	late final Translations$dashboard$account$pl account = Translations$dashboard$account$pl._(_root);
 	late final Translations$dashboard$materialsSm$pl materialsSm = Translations$dashboard$materialsSm$pl._(_root);
 	late final Translations$dashboard$frp$pl frp = Translations$dashboard$frp$pl._(_root);
+	late final Translations$dashboard$orders$pl orders = Translations$dashboard$orders$pl._(_root);
 }
 
 // Path: frp
@@ -311,6 +316,18 @@ class Translations$history$pl {
 
 	/// pl: 'Odśwież'
 	String get refresh => 'Odśwież';
+}
+
+// Path: orders
+class Translations$orders$pl {
+	Translations$orders$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Sekcja zamówień jest w budowie.'
+	String get placeholder => 'Sekcja zamówień jest w budowie.';
 }
 
 // Path: login.errors
@@ -406,6 +423,21 @@ class Translations$dashboard$frp$pl {
 	String get subtitle => 'Oznaczenie numerów szpul';
 }
 
+// Path: dashboard.orders
+class Translations$dashboard$orders$pl {
+	Translations$dashboard$orders$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Obsługa zamówień'
+	String get title => 'Obsługa zamówień';
+
+	/// pl: 'Zamówienia transportu wewnętrznego'
+	String get subtitle => 'Zamówienia transportu wewnętrznego';
+}
+
 /// The flat map containing all translations for locale <pl>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -465,6 +497,7 @@ extension on Translations {
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'operations.loadingName' => 'Pobieranie nazwy…',
+			'operations.errorSessionExpired' => 'Sesja wygasła - zaloguj się ponownie.',
 			'dashboard.appTitle' => 'Stock Manager',
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',
@@ -478,6 +511,8 @@ extension on Translations {
 			'dashboard.materialsSm.subtitle' => 'Przyjęcia i wydania',
 			'dashboard.frp.title' => 'FRP',
 			'dashboard.frp.subtitle' => 'Oznaczenie numerów szpul',
+			'dashboard.orders.title' => 'Obsługa zamówień',
+			'dashboard.orders.subtitle' => 'Zamówienia transportu wewnętrznego',
 			'frp.listTitle' => 'Do oznaczenia numerem szpuli',
 			'frp.listEmpty' => 'Brak FRP bez numeru szpuli.',
 			'frp.retry' => 'Spróbuj ponownie',
@@ -494,6 +529,7 @@ extension on Translations {
 			'history.employee' => 'Numer pracownika',
 			'history.empty' => 'Brak wpisów.',
 			'history.refresh' => 'Odśwież',
+			'orders.placeholder' => 'Sekcja zamówień jest w budowie.',
 			_ => null,
 		};
 	}

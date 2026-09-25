@@ -60,7 +60,8 @@
     "toastOffline": "Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.",
     "toastUnknown": "Nieznany kod - nie znaleziono materiału ani jednostki.",
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania.",
-    "loadingName": "Pobieranie nazwy…"
+    "loadingName": "Pobieranie nazwy…",
+    "errorSessionExpired": "Sesja wygasła - zaloguj się ponownie."
   },
   "dashboard": {
     "appTitle": "Stock Manager",
@@ -81,6 +82,10 @@
     "frp": {
       "title": "FRP",
       "subtitle": "Oznaczenie numerów szpul"
+    },
+    "orders": {
+      "title": "Obsługa zamówień",
+      "subtitle": "Zamówienia transportu wewnętrznego"
     }
   },
   "frp": {
@@ -102,5 +107,8 @@
     "employee": "Numer pracownika",
     "empty": "Brak wpisów.",
     "refresh": "Odśwież"
+  },
+  "orders": {
+    "placeholder": "Sekcja zamówień jest w budowie."
   }
 }

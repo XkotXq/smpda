@@ -21,11 +21,11 @@ class FrpPending {
   final String pendingQuantity;
 
   factory FrpPending.fromJson(Map<String, dynamic> json) => FrpPending(
-        itemNo: json['itemNo'] as String,
-        itemName: json['itemName'] as String? ?? '',
-        locationCode: json['locationCode'] as String? ?? '',
-        pendingQuantity: json['pendingQuantity'] as String? ?? '',
-      );
+    itemNo: json['itemNo'] as String,
+    itemName: json['itemName'] as String? ?? '',
+    locationCode: json['locationCode'] as String? ?? '',
+    pendingQuantity: json['pendingQuantity'] as String? ?? '',
+  );
 }
 
 /// The spool number [LabelResult]'s request asked for was taken meanwhile
@@ -80,13 +80,16 @@ class SmSpoolsApi {
     String? operator,
   }) async {
     try {
-      final res = await _dio.post<Map<String, dynamic>>('/sm-spools/label', data: {
-        'itemNo': itemNo,
-        'quantity': quantity,
-        'unitId': unitId,
-        'productBatch': productBatch ?? '',
-        'operator': operator,
-      });
+      final res = await _dio.post<Map<String, dynamic>>(
+        '/sm-spools/label',
+        data: {
+          'itemNo': itemNo,
+          'quantity': quantity,
+          'unitId': unitId,
+          'productBatch': productBatch ?? '',
+          'operator': operator,
+        },
+      );
       return res.data!['unitId'] as String;
     } on DioException catch (e) {
       final data = e.response?.data;

@@ -10,6 +10,7 @@ import 'features/frp/frp_label_screen.dart';
 import 'features/frp/frp_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/home/home_shell.dart';
+import 'features/orders/orders_screen.dart';
 import 'features/materials/operation_screen.dart';
 import 'features/materials/spool_picker_screen.dart';
 import 'features/settings/settings_screen.dart';
@@ -30,6 +31,7 @@ const materialsSmPath = '/materials-sm';
 const materialsSmOperationPath = '/materials-sm/operation';
 const materialsSmSpoolsPath = '/materials-sm/spools';
 const frpPath = '/frp';
+const ordersPath = '/orders';
 const frpLabelPath = '/frp/label';
 const historyIssuesPath = '/history/issues';
 const historyLabelingsPath = '/history/labelings';
@@ -83,6 +85,11 @@ final routerProvider = Provider<GoRouter>((ref) {
           ],
           body: const FrpScreen(),
         ),
+      ),
+      GoRoute(
+        path: ordersPath,
+        builder: (context, state) =>
+            SectionScaffold(title: context.t.dashboard.orders.title, body: const OrdersScreen()),
       ),
       GoRoute(
         path: frpLabelPath,

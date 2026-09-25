@@ -45,6 +45,7 @@ class TranslationsEn with BaseTranslations<AppLocale, Translations> implements T
 	@override late final _Translations$dashboard$en dashboard = _Translations$dashboard$en._(_root);
 	@override late final _Translations$frp$en frp = _Translations$frp$en._(_root);
 	@override late final _Translations$history$en history = _Translations$history$en._(_root);
+	@override late final _Translations$orders$en orders = _Translations$orders$en._(_root);
 }
 
 // Path: login
@@ -126,6 +127,7 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 	@override String get loadingName => 'Loading name…';
+	@override String get errorSessionExpired => 'Your session has expired - please log in again.';
 }
 
 // Path: dashboard
@@ -143,6 +145,7 @@ class _Translations$dashboard$en implements Translations$dashboard$pl {
 	@override late final _Translations$dashboard$account$en account = _Translations$dashboard$account$en._(_root);
 	@override late final _Translations$dashboard$materialsSm$en materialsSm = _Translations$dashboard$materialsSm$en._(_root);
 	@override late final _Translations$dashboard$frp$en frp = _Translations$dashboard$frp$en._(_root);
+	@override late final _Translations$dashboard$orders$en orders = _Translations$dashboard$orders$en._(_root);
 }
 
 // Path: frp
@@ -177,6 +180,16 @@ class _Translations$history$en implements Translations$history$pl {
 	@override String get employee => 'Employee number';
 	@override String get empty => 'No entries.';
 	@override String get refresh => 'Refresh';
+}
+
+// Path: orders
+class _Translations$orders$en implements Translations$orders$pl {
+	_Translations$orders$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get placeholder => 'The orders section is under construction.';
 }
 
 // Path: login.errors
@@ -240,6 +253,17 @@ class _Translations$dashboard$frp$en implements Translations$dashboard$frp$pl {
 	@override String get subtitle => 'Spool number marking';
 }
 
+// Path: dashboard.orders
+class _Translations$dashboard$orders$en implements Translations$dashboard$orders$pl {
+	_Translations$dashboard$orders$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get title => 'Order handling';
+	@override String get subtitle => 'Internal transport orders';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -299,6 +323,7 @@ extension on TranslationsEn {
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'operations.loadingName' => 'Loading name…',
+			'operations.errorSessionExpired' => 'Your session has expired - please log in again.',
 			'dashboard.appTitle' => 'Stock Manager',
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',
@@ -312,6 +337,8 @@ extension on TranslationsEn {
 			'dashboard.materialsSm.subtitle' => 'Receipts and issues',
 			'dashboard.frp.title' => 'FRP',
 			'dashboard.frp.subtitle' => 'Spool number marking',
+			'dashboard.orders.title' => 'Order handling',
+			'dashboard.orders.subtitle' => 'Internal transport orders',
 			'frp.listTitle' => 'To label with a spool number',
 			'frp.listEmpty' => 'No FRP without a spool number.',
 			'frp.retry' => 'Try again',
@@ -328,6 +355,7 @@ extension on TranslationsEn {
 			'history.employee' => 'Employee number',
 			'history.empty' => 'No entries.',
 			'history.refresh' => 'Refresh',
+			'orders.placeholder' => 'The orders section is under construction.',
 			_ => null,
 		};
 	}

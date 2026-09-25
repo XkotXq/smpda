@@ -4,8 +4,10 @@ import '../../core/api/models/sm_item.dart';
 import '../../core/api/sm_catalog_api.dart';
 import '../../core/api/models/sm_operation.dart';
 import '../../core/api/models/sm_unit.dart';
+import '../../core/api/auth_api.dart';
 import '../../core/api/sm_items_api.dart';
 import '../../core/api/sm_operations_api.dart';
+import '../../core/session/cip_session.dart';
 import '../../core/session/session_providers.dart';
 import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
@@ -362,7 +364,8 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     try {
       final itemsApi = ref.read(smItemsApiProvider);
       final operationsApi = ref.read(smOperationsApiProvider);
-      final operatorName = ref.read(appSettingsProvider).value?.operatorName;
+      final settings = ref.read(appSettingsProvider).value;
+      final operatorName = settings?.operatorName;
 
       // Fresh again, not what the scan saw: the operator may have taken a
       // while to type the quantity, and the item is written back whole.
@@ -392,15 +395,15 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
                 totalQuantity: op.trackedIndividually ? null : '0',
               )
             : upgrading
-                ? SmItem(
-                    itemNo: existing.itemNo,
-                    itemName: existing.itemName,
-                    locationCode: existing.locationCode,
-                    note: existing.note,
-                    trackedIndividually: true,
-                    pendingQuantity: existing.totalQuantity,
-                  )
-                : existing;
+            ? SmItem(
+                itemNo: existing.itemNo,
+                itemName: existing.itemName,
+                locationCode: existing.locationCode,
+                note: existing.note,
+                trackedIndividually: true,
+                pendingQuantity: existing.totalQuantity,
+              )
+            : existing;
 
         final unitId = op.unitId.trim();
         if (!item.trackedIndividually) {
@@ -464,12 +467,48 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         );
       }
 
-      final saved = await itemsApi.upsert(item);
+      // CIP-gated: wpsApi pushes this receipt/issue to CIP (using the
+      // operator's own CIP session) before writing anything, and refuses the
+      // whole save if CIP does - see SmItemsApi.upsert.
+      // The token is renewed first when (nearly) expired, and once more if CIP
+      // refuses it anyway - see CipSessionService. Not logged in at all: no CIP task.
+      final cipSession = ref.read(cipSessionProvider);
+      Future<SmItem> save({bool forceNewToken = false}) async {
+        if ((settings?.authToken ?? '').isEmpty) return itemsApi.upsert(item);
+        final token = await cipSession.freshToken(force: forceNewToken);
+        return itemsApi.upsert(
+          item,
+          cip: CipWriteTask(operation: operation.operation, quantity: formatQuantity(qty), cipToken: token),
+        );
+      }
+
+      SmItem saved;
+      try {
+        saved = await save();
+      } on SmItemApiError catch (e) {
+        if (e.code != 'session_expired') rethrow;
+        saved = await save(forceNewToken: true);
+      }
       await operationsApi.create([operation]);
 
       ref.read(smItemsListProvider.notifier).upsertLocal(saved);
       state = ReceiveIssueState(mode: state.mode);
       return true;
+    } on AuthFailure catch (e) {
+      // The session could not be renewed (and the operator is now logged out).
+      state = state.copyWith(
+        submitting: false,
+        error: e.code == 'session_expired' ? t.operations.errorSessionExpired : e.message,
+      );
+      return false;
+    } on SmItemApiError catch (e) {
+      // CIP still refused the renewed token: nothing more to try but a login.
+      if (e.code == 'session_expired') await ref.read(appSettingsProvider.notifier).logout();
+      state = state.copyWith(
+        submitting: false,
+        error: e.code == 'session_expired' ? t.operations.errorSessionExpired : e.message,
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(submitting: false, error: e.toString());
       return false;

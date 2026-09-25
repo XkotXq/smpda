@@ -29,21 +29,18 @@ class SmItem {
   final List<SmUnit> units;
   final String? pendingQuantity;
 
-  bool get hasPendingQuantity =>
-      pendingQuantity != null && (double.tryParse(pendingQuantity!) ?? 0) > 0;
+  bool get hasPendingQuantity => pendingQuantity != null && (double.tryParse(pendingQuantity!) ?? 0) > 0;
 
   factory SmItem.fromJson(Map<String, dynamic> json) => SmItem(
-        itemNo: json['itemNo'] as String,
-        itemName: json['itemName'] as String? ?? '',
-        locationCode: json['locationCode'] as String? ?? '',
-        note: json['note'] as String? ?? '-',
-        trackedIndividually: json['trackedIndividually'] as bool? ?? false,
-        totalQuantity: json['totalQuantity'] as String?,
-        units: (json['units'] as List<dynamic>? ?? [])
-            .map((u) => SmUnit.fromJson(u as Map<String, dynamic>))
-            .toList(),
-        pendingQuantity: json['pendingQuantity'] as String?,
-      );
+    itemNo: json['itemNo'] as String,
+    itemName: json['itemName'] as String? ?? '',
+    locationCode: json['locationCode'] as String? ?? '',
+    note: json['note'] as String? ?? '-',
+    trackedIndividually: json['trackedIndividually'] as bool? ?? false,
+    totalQuantity: json['totalQuantity'] as String?,
+    units: (json['units'] as List<dynamic>? ?? []).map((u) => SmUnit.fromJson(u as Map<String, dynamic>)).toList(),
+    pendingQuantity: json['pendingQuantity'] as String?,
+  );
 
   /// [clearPendingQuantity] exists because plain `?? this.pendingQuantity`
   /// can't tell "not touching this field" apart from "explicitly clear
@@ -72,14 +69,13 @@ class SmItem {
   }
 
   Map<String, dynamic> toJson() => {
-        'itemNo': itemNo,
-        'itemName': itemName,
-        'locationCode': locationCode,
-        'note': note,
-        'trackedIndividually': trackedIndividually,
-        if (!trackedIndividually) 'totalQuantity': totalQuantity ?? '0',
-        if (trackedIndividually) 'units': units.map((u) => u.toJson()).toList(),
-        if (trackedIndividually && pendingQuantity != null)
-          'pendingQuantity': pendingQuantity,
-      };
+    'itemNo': itemNo,
+    'itemName': itemName,
+    'locationCode': locationCode,
+    'note': note,
+    'trackedIndividually': trackedIndividually,
+    if (!trackedIndividually) 'totalQuantity': totalQuantity ?? '0',
+    if (trackedIndividually) 'units': units.map((u) => u.toJson()).toList(),
+    if (trackedIndividually && pendingQuantity != null) 'pendingQuantity': pendingQuantity,
+  };
 }

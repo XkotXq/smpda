@@ -30,6 +30,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _submitting = false;
+
+  /// The eye at the end of the password field - shows the typed password
+  /// instead of dots, for checking a typo on the small PDA keypad.
+  bool _showPassword = false;
   String? _error;
 
   @override
@@ -52,7 +56,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       final session = await ref.read(authApiProvider).login(username, password);
       await ref
           .read(appSettingsProvider.notifier)
-          .setLoggedIn(authToken: session.token, authRefreshToken: session.refreshToken, operatorName: session.userId);
+          .setLoggedIn(
+            authToken: session.token,
+            authRefreshToken: session.refreshToken,
+            operatorName: session.userId,
+            authorities: session.authorities,
+            authExpiresAt: session.expiresIn == null
+                ? 0
+                : DateTime.now().millisecondsSinceEpoch + session.expiresIn! * 1000,
+          );
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = _messageFor(e));
@@ -119,7 +131,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             scrollPadding: kFieldScrollPadding,
                             controller: _passwordController,
                             placeholder: Text(t.login.password),
-                            obscureText: true,
+                            obscureText: !_showPassword,
+                            // Tap only (ExcludeFocus): the eye must not take keyboard
+                            // focus away from the field or draw a focus ring on the PDA.
+                            trailing: ExcludeFocus(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => setState(() => _showPassword = !_showPassword),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                                  child: Icon(_showPassword ? LucideIcons.eyeOff : LucideIcons.eye, size: 18),
+                                ),
+                              ),
+                            ),
                             textInputAction: TextInputAction.done,
                             onSubmitted: (_) => _submit(),
                           ),

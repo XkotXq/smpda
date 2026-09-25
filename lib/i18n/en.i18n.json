@@ -60,7 +60,8 @@
     "toastOffline": "No connection to the server - can't scan. Check Wi-Fi and try again.",
     "toastUnknown": "Unknown code - no matching material or unit.",
     "toastNotIssuable": "No available quantity of this material to issue.",
-    "loadingName": "Loading name…"
+    "loadingName": "Loading name…",
+    "errorSessionExpired": "Your session has expired - please log in again."
   },
   "dashboard": {
     "appTitle": "Stock Manager",
@@ -81,6 +82,10 @@
     "frp": {
       "title": "FRP",
       "subtitle": "Spool number marking"
+    },
+    "orders": {
+      "title": "Order handling",
+      "subtitle": "Internal transport orders"
     }
   },
   "frp": {
@@ -102,5 +107,8 @@
     "employee": "Employee number",
     "empty": "No entries.",
     "refresh": "Refresh"
+  },
+  "orders": {
+    "placeholder": "The orders section is under construction."
   }
 }

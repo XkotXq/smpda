@@ -15,6 +15,8 @@ class AppSettings {
     this.operatorName = '',
     this.authToken = '',
     this.authRefreshToken = '',
+    this.authExpiresAt = 0,
+    this.authorities = const [],
     this.themeMode = ThemeMode.system,
     this.localeCode = 'pl',
     this.showNumericKeyboard = false,
@@ -42,6 +44,15 @@ class AppSettings {
   final String authToken;
   final String authRefreshToken;
 
+  /// When [authToken] stops being valid (epoch milliseconds), from the
+  /// login/refresh answer's `expiresIn` - 0 when the server didn't say. See
+  /// CipSessionService: the token is renewed shortly before this.
+  final int authExpiresAt;
+
+  /// What CIP allows this person (from login/refresh) - decides which modules
+  /// the dashboard shows, see module_access.dart.
+  final List<String> authorities;
+
   /// light/dark/system - see SettingsScreen's theme selector.
   final ThemeMode themeMode;
 
@@ -63,6 +74,8 @@ class AppSettings {
     String? operatorName,
     String? authToken,
     String? authRefreshToken,
+    int? authExpiresAt,
+    List<String>? authorities,
     ThemeMode? themeMode,
     String? localeCode,
     bool? showNumericKeyboard,
@@ -73,6 +86,8 @@ class AppSettings {
       operatorName: operatorName ?? this.operatorName,
       authToken: authToken ?? this.authToken,
       authRefreshToken: authRefreshToken ?? this.authRefreshToken,
+      authExpiresAt: authExpiresAt ?? this.authExpiresAt,
+      authorities: authorities ?? this.authorities,
       themeMode: themeMode ?? this.themeMode,
       localeCode: localeCode ?? this.localeCode,
       showNumericKeyboard: showNumericKeyboard ?? this.showNumericKeyboard,
@@ -82,5 +97,6 @@ class AppSettings {
   /// Drops the CIP session only - apiBaseUrl/apiToken/themeMode/localeCode
   /// (this device's own settings) stay put, since those aren't tied to who's
   /// logged in.
-  AppSettings loggedOut() => copyWith(authToken: '', authRefreshToken: '', operatorName: '');
+  AppSettings loggedOut() =>
+      copyWith(authToken: '', authRefreshToken: '', authExpiresAt: 0, authorities: const [], operatorName: '');
 }
