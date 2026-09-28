@@ -95,20 +95,6 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
     final state = ref.watch(receiveIssueControllerProvider);
     final op = state.current;
 
-    // The scan opened this screen before the server answered: when the
-    // location comes in, put it in the field - unless something was typed there.
-    ref.listen(receiveIssueControllerProvider.select((s) => s.current), (previous, next) {
-      if (previous is ReceiveOperation &&
-          previous.loading &&
-          next is ReceiveOperation &&
-          !next.loading &&
-          _locationController.text.trim().isEmpty) {
-        _locationController.text = next.location;
-      }
-    });
-    // Nothing to confirm until the item is known.
-    final loading = op is ReceiveOperation && op.loading;
-
     // Normally never hit while this screen is visible (submit/cancel both
     // pop it themselves) - guards the one edge case where something else
     // clears `current` first, e.g. a hot reload during development.
@@ -184,8 +170,8 @@ class _OperationScreenState extends ConsumerState<OperationScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                   child: ShadButton(
                     width: double.infinity,
-                    enabled: !state.submitting && !loading,
-                    onPressed: state.submitting || loading ? null : _confirm,
+                    enabled: !state.submitting,
+                    onPressed: state.submitting ? null : _confirm,
                     child: Text(state.submitting ? t.operations.submitting : t.operations.confirm),
                   ),
                 ),
@@ -400,10 +386,7 @@ class _ReceiveBody extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(op.itemNo, style: theme.textTheme.h3.copyWith(fontSize: 20, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
-                Text(
-                  op.loading ? t.operations.loadingName : op.itemName,
-                  style: theme.textTheme.muted.copyWith(fontSize: 16),
-                ),
+                Text(op.itemName, style: theme.textTheme.muted.copyWith(fontSize: 16)),
               ],
             ),
           ),

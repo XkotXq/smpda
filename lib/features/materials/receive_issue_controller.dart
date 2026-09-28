@@ -101,51 +101,26 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
 
   /// Wydanie: reads the item from the server, then opens the operation (or the
   /// spool picker). Throws (network/API error) rather than guessing - the
-  /// screen shows it. Przyjęcie goes through [startReceive]/[resolveReceive].
+  /// screen shows it. Przyjęcie goes through [scanReceive].
   Future<ScanOutcome> scan(String rawCode) async {
     final code = ScannedCode.parse(rawCode);
     if (code.raw.isEmpty) return ScanUnknown();
     return _scanForIssue(code);
   }
 
-  /// Przyjęcie, step 1: opens the operation at once with just the scanned item
-  /// number (and batch) - the screen shows it while [resolveReceive] fetches
-  /// the name.
-  ScanOutcome startReceive(String rawCode) {
+  /// Przyjęcie: reads the item from the server first, same shape as [scan]
+  /// (Wydanie) - the operation screen only ever opens once the item is
+  /// confirmed to exist, so an unknown code shows the "nieznany kod" toast
+  /// without ever flashing the screen open only to close it again a moment
+  /// later (the previous startReceive/resolveReceive two-step opened it
+  /// immediately, before knowing that). Throws on a network/API error, same
+  /// as [scan].
+  Future<ScanOutcome> scanReceive(String rawCode) async {
     final scanned = ScannedCode.parse(rawCode);
     if (scanned.itemNo.isEmpty) return ScanUnknown();
-    _setCurrent(
-      ReceiveOperation(
-        itemNo: scanned.itemNo,
-        itemName: '',
-        locationCode: '',
-        trackedIndividually: false,
-        productBatch: scanned.batch,
-        loading: true,
-      ),
-    );
-    return ScanStarted();
-  }
-
-  /// Przyjęcie, step 2: fills in what [startReceive] left open - name,
-  /// location, per-spool tracking - from the server (stock first, then the
-  /// catalog). Whatever the operator typed meanwhile (quantity, location, spool
-  /// number) is kept. ScanUnknown: the item is nowhere. Throws on a network/API
-  /// error.
-  Future<ScanOutcome> resolveReceive() async {
-    final pending = state.current;
-    if (pending is! ReceiveOperation || !pending.loading) return ScanStarted();
-
-    final resolved = await _lookupReceive(pending.itemNo, pending.productBatch);
-    // Cancelled or replaced while waiting - nothing to fill in any more.
-    if (!identical(state.current, pending)) return ScanStarted();
+    final resolved = await _lookupReceive(scanned.itemNo, scanned.batch);
     if (resolved == null) return ScanUnknown();
-
-    resolved
-      ..quantity = pending.quantity
-      ..unitId = pending.unitId;
-    if (pending.location.trim().isNotEmpty) resolved.location = pending.location;
-    state = state.copyWith(current: resolved);
+    _setCurrent(resolved);
     return ScanStarted();
   }
 
@@ -356,7 +331,6 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   Future<bool> submit() async {
     final op = state.current;
     if (op == null || state.submitting) return false;
-    if (op is ReceiveOperation && op.loading) return false;
     final qty = parseQuantity(op.quantity) ?? 0;
     if (qty <= 0) return false;
 

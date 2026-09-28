@@ -179,29 +179,33 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
     }
   }
 
-  /// Przyjęcie: the operation opens right away with the scanned item number;
-  /// the name (and the rest) is filled in as soon as the server answers. An
-  /// item that turns out to be unknown closes it again with a message.
+  /// Przyjęcie: same "look up on the server before opening" shape as the
+  /// issue branch above (ReceiveIssueController.scanReceive) - the operation
+  /// screen only ever opens once the item is confirmed to exist, so an
+  /// unknown code shows the "nieznany kod" toast right here instead of
+  /// flashing the screen open only to close it again a moment later.
   Future<void> _handleReceive(String code) async {
     final t = context.t;
-    final controller = ref.read(receiveIssueControllerProvider.notifier);
-    if (controller.startReceive(code) is! ScanStarted) {
-      ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
-      return;
-    }
-    _scanning = true;
-    context.push(materialsSmOperationPath);
-    final toaster = ShadToaster.of(context);
+    setState(() => _scanning = true);
+    final ScanOutcome outcome;
     try {
-      if (await controller.resolveReceive() is ScanUnknown) {
-        controller.cancelCurrent();
-        toaster.show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
-      }
+      outcome = await ref.read(receiveIssueControllerProvider.notifier).scanReceive(code);
     } catch (_) {
-      controller.cancelCurrent();
-      toaster.show(ShadToast.destructive(description: Text(t.operations.toastLoadFailed)));
+      if (mounted) ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastLoadFailed)));
+      return;
     } finally {
-      _scanning = false;
+      if (mounted) setState(() => _scanning = false);
+    }
+    if (!mounted) return;
+    switch (outcome) {
+      case ScanStarted():
+        context.push(materialsSmOperationPath);
+      case ScanUnknown():
+        ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
+      case ScanNotIssuable():
+      case ScanNeedsPick():
+        // scanReceive never returns either of these - Wydanie-only outcomes.
+        break;
     }
   }
 

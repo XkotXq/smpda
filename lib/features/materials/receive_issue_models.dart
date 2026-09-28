@@ -46,7 +46,6 @@ class ReceiveOperation extends CurrentOperation {
     this.quantity = '',
     this.unitId = '',
     this.productBatch,
-    this.loading = false,
   }) : location = locationCode == defaultReceiveLocation ? '' : locationCode;
 
   final bool trackedIndividually;
@@ -56,11 +55,6 @@ class ReceiveOperation extends CurrentOperation {
 
   /// Batch number read from a multi-field label (see ScannedCode), if any.
   final String? productBatch;
-
-  /// Only the scanned item number is known so far - name, location and whether
-  /// it is tracked per spool are still being read from the server (see
-  /// ReceiveIssueController.startReceive / resolveReceive).
-  final bool loading;
 
   /// Editable location the item is received to - starts as its current
   /// location (blank for a brand-new catalog item) and, when non-blank,
