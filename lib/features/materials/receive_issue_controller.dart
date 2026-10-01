@@ -16,13 +16,38 @@ import 'receive_issue_models.dart';
 import 'scanned_code.dart';
 
 class ReceiveIssueState {
-  const ReceiveIssueState({this.mode = FlowMode.receive, this.current, this.pick, this.submitting = false, this.error});
+  const ReceiveIssueState({
+    this.mode = FlowMode.receive,
+    this.current,
+    this.pick,
+    this.submitting = false,
+    this.error,
+    this.orderId,
+    this.orderItemQuantities = const {},
+  });
 
   final FlowMode mode;
   final CurrentOperation? current;
   final SpoolPick? pick;
   final bool submitting;
   final String? error;
+
+  /// Set while "Obsługa zamówień" (features/orders/) has this controller
+  /// scoped to one order's own scan-and-issue flow - see setOrderContext.
+  /// Carried onto every issue's own SmOperation (see submit) so that
+  /// order's checklist can auto-check the item off; null the rest of the
+  /// time, unchanged from before this existed.
+  final String? orderId;
+
+  /// That order's own item_no -> "quantity unit" (e.g. "5 szt.", already
+  /// formatted by OrderDetailScreen from its own order_items_progress row) -
+  /// scanning something real but not a key here is refused (see
+  /// _scanForIssue's own gate) rather than issued against the wrong order;
+  /// scanning something that IS a key carries its value onto the built
+  /// IssueOperation as orderRequiredQuantity, shown on OperationScreen so
+  /// the operator sees what the order actually asked for while confirming
+  /// how much to issue. Empty whenever [orderId] is null.
+  final Map<String, String> orderItemQuantities;
 
   ReceiveIssueState copyWith({
     CurrentOperation? current,
@@ -39,6 +64,8 @@ class ReceiveIssueState {
       pick: clearPick ? null : (pick ?? this.pick),
       submitting: submitting ?? this.submitting,
       error: clearError ? null : (error ?? this.error),
+      orderId: orderId,
+      orderItemQuantities: orderItemQuantities,
     );
   }
 }
@@ -54,6 +81,24 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   void setMode(FlowMode mode) {
     if (mode == state.mode) return;
     state = ReceiveIssueState(mode: mode);
+  }
+
+  /// Scopes this controller to one order's own "Obsługa zamówień" flow
+  /// (features/orders/order_scan_screen.dart) - forces issue mode (a
+  /// material order is only ever fulfilled by issuing, never received) and
+  /// clears whatever operation/pick was mid-flight, same reset setMode
+  /// already does on a plain mode switch.
+  void setOrderContext(String orderId, Map<String, String> itemQuantities) {
+    state = ReceiveIssueState(mode: FlowMode.issue, orderId: orderId, orderItemQuantities: itemQuantities);
+  }
+
+  /// Leaving the order-scoped scan screen - see its own dispose(). Keeps
+  /// whatever mode was active (unlike setOrderContext, this isn't a mode
+  /// switch), just drops the order tag so a later, ordinary issue never
+  /// accidentally carries a stale orderId.
+  void clearOrderContext() {
+    if (state.orderId == null) return;
+    state = ReceiveIssueState(mode: state.mode);
   }
 
   /// The item straight from wpsApi (null: not in stock), also patched into
@@ -118,10 +163,22 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   Future<ScanOutcome> scanReceive(String rawCode) async {
     final scanned = ScannedCode.parse(rawCode);
     if (scanned.itemNo.isEmpty) return ScanUnknown();
-    final resolved = await _lookupReceive(scanned.itemNo, scanned.batch);
+    final resolved = await _lookupReceive(scanned.itemNo, scanned.batch, scanned.quantity);
     if (resolved == null) return ScanUnknown();
     _setCurrent(resolved);
     return ScanStarted();
+  }
+
+  /// The scanned label's own quantity field (see ScannedCode), capped at
+  /// what's actually available - same cap updateQuantity already applies to
+  /// anything typed by hand, reused here so a label overstating what's on
+  /// the shelf can't be issued past it either. Null (quantity starts blank,
+  /// same as before this existed) when the label carried none - a plain
+  /// item-number-only scan, or a spool tag (see ScannedCode's own comment:
+  /// only a multi-field label has this at all).
+  String? _scannedQuantity(String? scanned, String available) {
+    if (scanned == null) return null;
+    return _capQuantity(scanned, available);
   }
 
   Future<ScanOutcome> _scanForIssue(ScannedCode scanned) async {
@@ -136,6 +193,15 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       item = _cachedItemWithUnit(scanned);
     }
     if (item == null) return ScanUnknown();
+    // "Obsługa zamówień" (see setOrderContext) - a real, in-stock item, but
+    // not one of this order's own items. Checked before any of the
+    // kind-specific branches below (unit/aggregate/pending) so a spool tag
+    // belonging to the wrong item is refused the same way a plain wrong
+    // item number is. `orderQty` (this order's own "quantity unit" for the
+    // item, e.g. "5 szt.") rides along on whichever IssueOperation gets
+    // built below - see its own orderRequiredQuantity comment.
+    final orderQty = state.orderItemQuantities[item.itemNo];
+    if (state.orderId != null && orderQty == null) return ScanNotInOrder();
 
     for (final unit in item.units) {
       if (unit.unitId != scanned.raw && unit.unitId != code) continue;
@@ -148,6 +214,7 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
           available: unit.quantity,
           unitId: unit.unitId,
           productBatch: scanned.batch ?? _nonEmpty(unit.productBatch),
+          orderRequiredQuantity: orderQty,
         ),
       );
       return ScanStarted();
@@ -156,14 +223,17 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
     if (!item.trackedIndividually) {
       final qty = parseQuantity(item.totalQuantity ?? '0') ?? 0;
       if (qty <= 0) return ScanNotIssuable();
+      final available = item.totalQuantity ?? '0';
       _setCurrent(
         IssueOperation(
           itemNo: item.itemNo,
           itemName: item.itemName,
           locationCode: item.locationCode,
           kind: IssueKind.aggregate,
-          available: item.totalQuantity ?? '0',
+          available: available,
           productBatch: scanned.batch,
+          placeholderQuantity: _scannedQuantity(scanned.quantity, available),
+          orderRequiredQuantity: orderQty,
         ),
       );
       return ScanStarted();
@@ -186,6 +256,8 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
           kind: IssueKind.pending,
           available: item.pendingQuantity!,
           productBatch: scanned.batch,
+          placeholderQuantity: _scannedQuantity(scanned.quantity, item.pendingQuantity!),
+          orderRequiredQuantity: orderQty,
         ),
       );
       return ScanStarted();
@@ -202,6 +274,8 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         ],
         pendingQuantity: item.hasPendingQuantity ? item.pendingQuantity : null,
         productBatch: scanned.batch,
+        orderRequiredQuantity: orderQty,
+        scannedQuantity: scanned.quantity,
       ),
       clearError: true,
     );
@@ -219,7 +293,7 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   /// catalog, or was received under a number the catalog import never
   /// covered). submit() honors this same resolved value, not the item's
   /// stored flag, so what's shown here is what actually gets saved.
-  Future<ReceiveOperation?> _lookupReceive(String itemNo, String? productBatch) async {
+  Future<ReceiveOperation?> _lookupReceive(String itemNo, String? productBatch, String? scannedQuantity) async {
     // The stock and the catalog entry of this one item are independent - asked
     // together, not the whole catalog per scan.
     final (stockItem, catalogItem) = await (_fetchItem(itemNo), ref.read(smCatalogApiProvider).get(itemNo)).wait;
@@ -233,6 +307,13 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       locationCode: stockItem?.locationCode ?? '',
       trackedIndividually: catalogItem?.individualUnits ?? stockItem!.trackedIndividually,
       productBatch: productBatch,
+      // The scanned label's own quantity field (see ScannedCode), as the
+      // quantity input's placeholder in place of "1" - not prefilled text
+      // (quantity itself stays blank, its own default) - see
+      // ReceiveOperation.placeholderQuantity's own comment. A receipt has
+      // no "available" ceiling to cap it against (unlike an issue, there's
+      // nothing on the shelf yet to overstate), so this is used as-is.
+      placeholderQuantity: scannedQuantity,
     );
   }
 
@@ -254,6 +335,8 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         kind: IssueKind.pending,
         available: pick.pendingQuantity!,
         productBatch: pick.productBatch,
+        placeholderQuantity: _scannedQuantity(pick.scannedQuantity, pick.pendingQuantity!),
+        orderRequiredQuantity: pick.orderRequiredQuantity,
       ),
       clearPick: true,
       clearError: true,
@@ -276,6 +359,7 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
         available: unit.quantity,
         unitId: unitId,
         productBatch: pick.productBatch ?? _nonEmpty(unit.productBatch),
+        orderRequiredQuantity: pick.orderRequiredQuantity,
       ),
     );
     return submit();
@@ -331,7 +415,22 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   Future<bool> submit() async {
     final op = state.current;
     if (op == null || state.submitting) return false;
-    final qty = parseQuantity(op.quantity) ?? 0;
+    // A receipt left blank defaults to its own placeholderQuantity (the
+    // scanned label's own quantity, shown as the field's placeholder - see
+    // ReceiveOperation's own comment) if it has one, else the fixed
+    // defaultReceiveQuantity ("1") the placeholder falls back to instead.
+    // Wydanie is the mirror: blank defaults to its own placeholderQuantity
+    // when the label carried one (same reasoning - the operator was shown
+    // it and chose not to overtype it), otherwise stays a no-op exactly as
+    // before this existed (issuing the wrong amount because nothing was
+    // typed, with nothing to fall back to, is a real stock mistake - only
+    // safe to default when the label itself said how much).
+    final quantityText = switch (op) {
+      ReceiveOperation() when op.quantity.trim().isEmpty => op.placeholderQuantity ?? defaultReceiveQuantity,
+      IssueOperation() when op.quantity.trim().isEmpty => op.placeholderQuantity ?? '',
+      _ => op.quantity,
+    };
+    final qty = parseQuantity(quantityText) ?? 0;
     if (qty <= 0) return false;
 
     state = state.copyWith(submitting: true, clearError: true);
@@ -438,6 +537,9 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
           quantity: formatQuantity(qty),
           productBatch: op.productBatch,
           operator: operatorName,
+          // "Obsługa zamówień" context (see setOrderContext) - null for an
+          // ordinary issue, unchanged from before this existed.
+          orderId: state.orderId,
         );
       }
 
@@ -466,7 +568,11 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       await operationsApi.create([operation]);
 
       ref.read(smItemsListProvider.notifier).upsertLocal(saved);
-      state = ReceiveIssueState(mode: state.mode);
+      // Keeps orderId across the reset - "Obsługa zamówień" scans several
+      // items in a row for the same order, unlike every other reset of this
+      // state (setMode, clearOrderContext) which is a deliberate context
+      // switch away from it.
+      state = ReceiveIssueState(mode: state.mode, orderId: state.orderId, orderItemQuantities: state.orderItemQuantities);
       return true;
     } on AuthFailure catch (e) {
       // The session could not be renewed (and the operator is now logged out).

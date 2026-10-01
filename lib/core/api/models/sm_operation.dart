@@ -12,6 +12,7 @@ class SmOperation {
     this.productBatch,
     this.operator,
     this.time,
+    this.orderId,
   });
 
   final String? id;
@@ -28,6 +29,12 @@ class SmOperation {
   final String? operator;
   final String? time;
 
+  /// Which transport order (see wpsapi's orders/order_items) this issue was
+  /// scanned against, from "Obsługa zamówień" - see
+  /// receive_issue_controller.dart's own orderId state. Null for every
+  /// ordinary operation with no order context (the vast majority).
+  final String? orderId;
+
   factory SmOperation.fromJson(Map<String, dynamic> json) => SmOperation(
     id: json['id'] as String?,
     operation: json['operation'] as String,
@@ -39,6 +46,7 @@ class SmOperation {
     productBatch: json['productBatch'] as String?,
     operator: json['operator'] as String?,
     time: json['time'] as String?,
+    orderId: json['orderId'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -50,5 +58,6 @@ class SmOperation {
     'location': location,
     'productBatch': productBatch,
     'operator': operator,
+    if (orderId != null) 'orderId': orderId,
   };
 }

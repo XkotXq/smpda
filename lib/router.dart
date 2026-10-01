@@ -10,6 +10,7 @@ import 'features/frp/frp_label_screen.dart';
 import 'features/frp/frp_screen.dart';
 import 'features/history/history_screen.dart';
 import 'features/home/home_shell.dart';
+import 'features/orders/order_detail_screen.dart';
 import 'features/orders/orders_screen.dart';
 import 'features/materials/operation_screen.dart';
 import 'features/materials/spool_picker_screen.dart';
@@ -32,6 +33,11 @@ const materialsSmOperationPath = '/materials-sm/operation';
 const materialsSmSpoolsPath = '/materials-sm/spools';
 const frpPath = '/frp';
 const ordersPath = '/orders';
+// :id is wpsapi's own orders.id (see wpsapi's orders.js) - a path param,
+// not state.extra, so this detail screen survives a hot restart / deep
+// link the same way every other route here does.
+const ordersDetailPath = '/orders/:id';
+String ordersDetailPathFor(String id) => '/orders/$id';
 const frpLabelPath = '/frp/label';
 const historyIssuesPath = '/history/issues';
 const historyLabelingsPath = '/history/labelings';
@@ -90,6 +96,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: ordersPath,
         builder: (context, state) =>
             SectionScaffold(title: context.t.dashboard.orders.title, body: const OrdersScreen()),
+      ),
+      GoRoute(
+        path: ordersDetailPath,
+        builder: (context, state) => OrderDetailScreen(orderId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: frpLabelPath,

@@ -34,6 +34,13 @@ sealed class CurrentOperation {
 /// the field's placeholder, so it is only typed when the goods go elsewhere.
 const defaultReceiveLocation = 'MT';
 
+/// What a receipt's quantity is when the operator leaves it empty - shown as
+/// the field's placeholder (see OperationScreen's _ReceiveBody), same idea as
+/// [defaultReceiveLocation]: the common case (one spool/bag/reel) needs no
+/// typing, only a different amount does. Honored in
+/// ReceiveIssueController.submit.
+const defaultReceiveQuantity = '1';
+
 /// [unitId] blank means "Brak" (pendingQuantity, no physical spool number
 /// assigned yet), same as wps's own single-receipt form. Only meaningful
 /// when [trackedIndividually]; ignored for an aggregate item.
@@ -46,6 +53,7 @@ class ReceiveOperation extends CurrentOperation {
     this.quantity = '',
     this.unitId = '',
     this.productBatch,
+    this.placeholderQuantity,
   }) : location = locationCode == defaultReceiveLocation ? '' : locationCode;
 
   final bool trackedIndividually;
@@ -56,6 +64,15 @@ class ReceiveOperation extends CurrentOperation {
   /// Batch number read from a multi-field label (see ScannedCode), if any.
   final String? productBatch;
 
+  /// The scanned label's own quantity field (see ScannedCode), shown as the
+  /// quantity input's placeholder in place of defaultReceiveQuantity's own
+  /// "1" - a hint, not prefilled text (the operator still has to confirm
+  /// it, same as "1" always was) - see OperationScreen's _ReceiveBody.
+  /// submit() falls back to this (then to defaultReceiveQuantity) when the
+  /// field is left blank, same as the placeholder it's replacing. Null when
+  /// the label carried none (a plain item-number-only scan).
+  final String? placeholderQuantity;
+
   /// Editable location the item is received to - starts as its current
   /// location (blank for a brand-new catalog item) and, when non-blank,
   /// replaces sm_items.locationCode on submit.
@@ -65,10 +82,10 @@ class ReceiveOperation extends CurrentOperation {
 /// [kind] decides what [unitId]/[available]/[quantity] mean:
 /// - unit: [unitId] is that spool's own tag, [quantity] always equals
 ///   [available] (no partial unit issue) and isn't user-editable.
-/// - aggregate: [unitId] is null, [quantity] starts blank and
-///   must be typed, capped at [available].
-/// - pending (unmarked stock): [unitId] is null, [quantity] starts blank
-///   like an aggregate and must be typed, capped at [available].
+/// - aggregate: [unitId] is null, [quantity] starts blank and must be
+///   typed/confirmed - [placeholderQuantity] (below) is only a hint, never
+///   prefilled text.
+/// - pending (unmarked stock): same as aggregate.
 class IssueOperation extends CurrentOperation {
   IssueOperation({
     required super.itemNo,
@@ -78,6 +95,8 @@ class IssueOperation extends CurrentOperation {
     required this.available,
     this.unitId,
     this.productBatch,
+    this.placeholderQuantity,
+    this.orderRequiredQuantity,
   }) : quantity = kind == IssueKind.unit ? trimQuantity(available) : '';
 
   final IssueKind kind;
@@ -89,6 +108,24 @@ class IssueOperation extends CurrentOperation {
   final String? productBatch;
   @override
   String quantity;
+
+  /// The scanned label's own quantity field (see ScannedCode), already
+  /// capped at [available] - shown as the quantity input's placeholder
+  /// (OperationScreen's _IssueBody), a hint the operator still has to
+  /// confirm, never prefilled text. submit() falls back to it when the
+  /// field is left blank (an ordinary Wydanie with no scanned quantity has
+  /// no such fallback - see submit's own comment). Null (no placeholder,
+  /// same as before this existed) when the label carried none, or for a
+  /// [kind] of unit (that quantity is fixed, never typed at all).
+  final String? placeholderQuantity;
+
+  /// "Obsługa zamówień" only (see ReceiveIssueController.setOrderContext) -
+  /// this order's own "quantity unit" for this item (e.g. "5 szt."),
+  /// already formatted by OrderDetailScreen - shown as an extra stat on
+  /// OperationScreen (_IssueBody) so the operator sees what the order
+  /// actually asked for while confirming how much to issue, not just what's
+  /// on the shelf ([available]). Null outside an order context.
+  final String? orderRequiredQuantity;
 }
 
 /// Returned by ReceiveIssueController.scan - the screen reacts to
@@ -113,12 +150,26 @@ class SpoolPick {
     required this.units,
     required this.pendingQuantity,
     this.productBatch,
+    this.scannedQuantity,
+    this.orderRequiredQuantity,
   });
   final String itemNo;
   final String itemName;
   final String locationCode;
   final List<({String unitId, String quantity, String? productBatch})> units;
   final String? pendingQuantity;
+
+  /// The scanned label's own quantity field (see ScannedCode) - carried
+  /// through to startPendingIssue() for "Brak numeru szpuli" (the only pick
+  /// outcome with a quantity left to type at all; a numbered spool is
+  /// always issued whole). Not capped yet - that happens once
+  /// [pendingQuantity] (this pick's own "available") is known for sure.
+  final String? scannedQuantity;
+
+  /// "Obsługa zamówień" only - carried through to whichever IssueOperation
+  /// this pick resolves into (startPendingIssue/issueSpool), see that
+  /// field's own comment on IssueOperation.
+  final String? orderRequiredQuantity;
 
   /// Batch of the scanned label, if it carried one.
   final String? productBatch;
@@ -130,3 +181,11 @@ class SpoolPick {
 class ScanNotIssuable extends ScanOutcome {}
 
 class ScanUnknown extends ScanOutcome {}
+
+/// A real, in-stock item - but this controller is scoped to one order
+/// (ReceiveIssueController.setOrderContext, see features/orders/) and this
+/// item isn't one of its own order_items. Distinct from [ScanUnknown]
+/// (which means "nothing in stock matches this code at all") - the item is
+/// perfectly real, it's just not on *this* order's list, so it gets its
+/// own message ("Obsługa zamówień" - see OrderDetailScreen).
+class ScanNotInOrder extends ScanOutcome {}

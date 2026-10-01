@@ -174,6 +174,8 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastNotIssuable)));
       case ScanUnknown():
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
+      case ScanNotInOrder():
+        ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastNotInOrder)));
       case ScanNeedsPick():
         context.push(materialsSmSpoolsPath);
     }
@@ -204,7 +206,8 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
         ShadToaster.of(context).show(ShadToast.destructive(description: Text(t.operations.toastUnknown)));
       case ScanNotIssuable():
       case ScanNeedsPick():
-        // scanReceive never returns either of these - Wydanie-only outcomes.
+      case ScanNotInOrder():
+        // scanReceive never returns any of these - Wydanie-only outcomes.
         break;
     }
   }

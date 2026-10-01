@@ -38,6 +38,7 @@
     "location": "Lokalizacja",
     "material": "Materiał",
     "onStock": "Na stanie",
+    "orderedQuantity": "Zamówiono",
     "issueQuantity": "Ilość wydania",
     "pickSpool": "Wybierz numer szpuli",
     "noSpoolNumber": "Brak numeru szpuli",
@@ -59,6 +60,7 @@
     "toastLoadFailed": "Nie udało się pobrać stanu z serwera.",
     "toastOffline": "Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.",
     "toastUnknown": "Nieznany kod - nie znaleziono materiału ani jednostki.",
+    "toastNotInOrder": "Ten materiał nie znajduje się na liście tego zamówienia.",
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania.",
     "loadingName": "Pobieranie nazwy…",
     "errorSessionExpired": "Sesja wygasła - zaloguj się ponownie."
@@ -109,6 +111,19 @@
     "refresh": "Odśwież"
   },
   "orders": {
-    "placeholder": "Sekcja zamówień jest w budowie."
+    "loading": "Wczytywanie...",
+    "loadError": "Nie udało się pobrać listy zamówień.",
+    "empty": "Brak zamówień w realizacji.",
+    "retry": "Spróbuj ponownie",
+    "line": "Linia",
+    "requestedBy": "Zlecający",
+    "productionOrderNo": "Numer zamówienia",
+    "items": "pozycji",
+    "detail": {
+      "itemsTitle": "Do wydania",
+      "issued": "Wydano: {value}",
+      "allIssued": "Wszystkie materiały wydane"
+    },
+    "allIssuedBadge": "Wydano"
   }
 }

@@ -253,6 +253,11 @@ class _IssueBody extends ConsumerWidget {
                   children: [
                     stat(t.operations.location, op.locationCode.isEmpty ? '-' : op.locationCode),
                     stat(t.operations.onStock, trimQuantity(op.available)),
+                    // "Obsługa zamówień" only (see IssueOperation's own
+                    // comment) - what the order itself asked for, not just
+                    // what's on the shelf, right next to it for comparison
+                    // while confirming how much to issue.
+                    if (op.orderRequiredQuantity != null) stat(t.operations.orderedQuantity, op.orderRequiredQuantity!),
                     if (op.kind == IssueKind.unit) stat(t.operations.unitLabel, op.unitId ?? ''),
                   ],
                 ),
@@ -281,6 +286,16 @@ class _IssueBody extends ConsumerWidget {
                       autofocus: true,
                       keyboardType: numericKeyboardType(ref),
                       onChanged: controller.updateQuantity,
+                      // The scanned label's own quantity, as a hint - not
+                      // prefilled text (see IssueOperation.placeholderQuantity's
+                      // own comment); null (no placeholder) when the label
+                      // carried none, same as before this existed.
+                      placeholder: op.placeholderQuantity == null ? null : Text(op.placeholderQuantity!),
+                      placeholderStyle: op.placeholderQuantity == null
+                          ? null
+                          : quantityStyleFor(op.placeholderQuantity!).copyWith(
+                              color: theme.colorScheme.mutedForeground.withValues(alpha: 0.5),
+                            ),
                       style: quantityStyleFor(quantityController.text),
                       padding: EdgeInsets.zero,
                       decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
@@ -398,6 +413,10 @@ class _ReceiveBody extends ConsumerWidget {
             autofocus: true,
             keyboardType: numericKeyboardType(ref),
             onChanged: controller.updateQuantity,
+            // The scanned label's own quantity (see ReceiveOperation.
+            // placeholderQuantity) in place of the fixed "1" whenever the
+            // label carried one - still just a hint, not prefilled text.
+            placeholder: op.placeholderQuantity ?? defaultReceiveQuantity,
             size: 34,
           ),
           field(

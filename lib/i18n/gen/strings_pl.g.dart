@@ -150,6 +150,9 @@ class Translations$operations$pl {
 	/// pl: 'Na stanie'
 	String get onStock => 'Na stanie';
 
+	/// pl: 'Zamówiono'
+	String get orderedQuantity => 'Zamówiono';
+
 	/// pl: 'Ilość wydania'
 	String get issueQuantity => 'Ilość wydania';
 
@@ -212,6 +215,9 @@ class Translations$operations$pl {
 
 	/// pl: 'Nieznany kod - nie znaleziono materiału ani jednostki.'
 	String get toastUnknown => 'Nieznany kod - nie znaleziono materiału ani jednostki.';
+
+	/// pl: 'Ten materiał nie znajduje się na liście tego zamówienia.'
+	String get toastNotInOrder => 'Ten materiał nie znajduje się na liście tego zamówienia.';
 
 	/// pl: 'Brak dostępnej ilości tego materiału do wydania.'
 	String get toastNotIssuable => 'Brak dostępnej ilości tego materiału do wydania.';
@@ -326,8 +332,34 @@ class Translations$orders$pl {
 
 	// Translations
 
-	/// pl: 'Sekcja zamówień jest w budowie.'
-	String get placeholder => 'Sekcja zamówień jest w budowie.';
+	/// pl: 'Wczytywanie...'
+	String get loading => 'Wczytywanie...';
+
+	/// pl: 'Nie udało się pobrać listy zamówień.'
+	String get loadError => 'Nie udało się pobrać listy zamówień.';
+
+	/// pl: 'Brak zamówień w realizacji.'
+	String get empty => 'Brak zamówień w realizacji.';
+
+	/// pl: 'Spróbuj ponownie'
+	String get retry => 'Spróbuj ponownie';
+
+	/// pl: 'Linia'
+	String get line => 'Linia';
+
+	/// pl: 'Zlecający'
+	String get requestedBy => 'Zlecający';
+
+	/// pl: 'Numer zamówienia'
+	String get productionOrderNo => 'Numer zamówienia';
+
+	/// pl: 'pozycji'
+	String get items => 'pozycji';
+
+	late final Translations$orders$detail$pl detail = Translations$orders$detail$pl._(_root);
+
+	/// pl: 'Wydano'
+	String get allIssuedBadge => 'Wydano';
 }
 
 // Path: login.errors
@@ -438,6 +470,24 @@ class Translations$dashboard$orders$pl {
 	String get subtitle => 'Zamówienia transportu wewnętrznego';
 }
 
+// Path: orders.detail
+class Translations$orders$detail$pl {
+	Translations$orders$detail$pl._(this._root);
+
+	final Translations _root; // ignore: unused_field
+
+	// Translations
+
+	/// pl: 'Do wydania'
+	String get itemsTitle => 'Do wydania';
+
+	/// pl: 'Wydano: {value}'
+	String issued({required Object value}) => 'Wydano: ${value}';
+
+	/// pl: 'Wszystkie materiały wydane'
+	String get allIssued => 'Wszystkie materiały wydane';
+}
+
 /// The flat map containing all translations for locale <pl>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -474,6 +524,7 @@ extension on Translations {
 			'operations.location' => 'Lokalizacja',
 			'operations.material' => 'Materiał',
 			'operations.onStock' => 'Na stanie',
+			'operations.orderedQuantity' => 'Zamówiono',
 			'operations.issueQuantity' => 'Ilość wydania',
 			'operations.pickSpool' => 'Wybierz numer szpuli',
 			'operations.noSpoolNumber' => 'Brak numeru szpuli',
@@ -495,6 +546,7 @@ extension on Translations {
 			'operations.toastLoadFailed' => 'Nie udało się pobrać stanu z serwera.',
 			'operations.toastOffline' => 'Brak połączenia z serwerem - nie można zeskanować. Sprawdź Wi-Fi i spróbuj ponownie.',
 			'operations.toastUnknown' => 'Nieznany kod - nie znaleziono materiału ani jednostki.',
+			'operations.toastNotInOrder' => 'Ten materiał nie znajduje się na liście tego zamówienia.',
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'operations.loadingName' => 'Pobieranie nazwy…',
 			'operations.errorSessionExpired' => 'Sesja wygasła - zaloguj się ponownie.',
@@ -529,7 +581,18 @@ extension on Translations {
 			'history.employee' => 'Numer pracownika',
 			'history.empty' => 'Brak wpisów.',
 			'history.refresh' => 'Odśwież',
-			'orders.placeholder' => 'Sekcja zamówień jest w budowie.',
+			'orders.loading' => 'Wczytywanie...',
+			'orders.loadError' => 'Nie udało się pobrać listy zamówień.',
+			'orders.empty' => 'Brak zamówień w realizacji.',
+			'orders.retry' => 'Spróbuj ponownie',
+			'orders.line' => 'Linia',
+			'orders.requestedBy' => 'Zlecający',
+			'orders.productionOrderNo' => 'Numer zamówienia',
+			'orders.items' => 'pozycji',
+			'orders.detail.itemsTitle' => 'Do wydania',
+			'orders.detail.issued' => ({required Object value}) => 'Wydano: ${value}',
+			'orders.detail.allIssued' => 'Wszystkie materiały wydane',
+			'orders.allIssuedBadge' => 'Wydano',
 			_ => null,
 		};
 	}

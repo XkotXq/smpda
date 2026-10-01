@@ -38,6 +38,7 @@
     "location": "Location",
     "material": "Material",
     "onStock": "In stock",
+    "orderedQuantity": "Ordered",
     "issueQuantity": "Issue quantity",
     "pickSpool": "Choose a spool number",
     "noSpoolNumber": "No spool number",
@@ -59,6 +60,7 @@
     "toastLoadFailed": "Could not load stock from the server.",
     "toastOffline": "No connection to the server - can't scan. Check Wi-Fi and try again.",
     "toastUnknown": "Unknown code - no matching material or unit.",
+    "toastNotInOrder": "This material isn't on this order's list.",
     "toastNotIssuable": "No available quantity of this material to issue.",
     "loadingName": "Loading name…",
     "errorSessionExpired": "Your session has expired - please log in again."
@@ -109,6 +111,19 @@
     "refresh": "Refresh"
   },
   "orders": {
-    "placeholder": "The orders section is under construction."
+    "loading": "Loading...",
+    "loadError": "Failed to load the order list.",
+    "empty": "No orders in progress.",
+    "retry": "Try again",
+    "line": "Line",
+    "requestedBy": "Requested by",
+    "productionOrderNo": "Order number",
+    "items": "items",
+    "detail": {
+      "itemsTitle": "To issue",
+      "issued": "Issued: {value}",
+      "allIssued": "All materials issued"
+    },
+    "allIssuedBadge": "Issued"
   }
 }

@@ -104,6 +104,7 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get location => 'Location';
 	@override String get material => 'Material';
 	@override String get onStock => 'In stock';
+	@override String get orderedQuantity => 'Ordered';
 	@override String get issueQuantity => 'Issue quantity';
 	@override String get pickSpool => 'Choose a spool number';
 	@override String get noSpoolNumber => 'No spool number';
@@ -125,6 +126,7 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get toastLoadFailed => 'Could not load stock from the server.';
 	@override String get toastOffline => 'No connection to the server - can\'t scan. Check Wi-Fi and try again.';
 	@override String get toastUnknown => 'Unknown code - no matching material or unit.';
+	@override String get toastNotInOrder => 'This material isn\'t on this order\'s list.';
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 	@override String get loadingName => 'Loading name…';
 	@override String get errorSessionExpired => 'Your session has expired - please log in again.';
@@ -189,7 +191,16 @@ class _Translations$orders$en implements Translations$orders$pl {
 	final TranslationsEn _root; // ignore: unused_field
 
 	// Translations
-	@override String get placeholder => 'The orders section is under construction.';
+	@override String get loading => 'Loading...';
+	@override String get loadError => 'Failed to load the order list.';
+	@override String get empty => 'No orders in progress.';
+	@override String get retry => 'Try again';
+	@override String get line => 'Line';
+	@override String get requestedBy => 'Requested by';
+	@override String get productionOrderNo => 'Order number';
+	@override String get items => 'items';
+	@override late final _Translations$orders$detail$en detail = _Translations$orders$detail$en._(_root);
+	@override String get allIssuedBadge => 'Issued';
 }
 
 // Path: login.errors
@@ -264,6 +275,18 @@ class _Translations$dashboard$orders$en implements Translations$dashboard$orders
 	@override String get subtitle => 'Internal transport orders';
 }
 
+// Path: orders.detail
+class _Translations$orders$detail$en implements Translations$orders$detail$pl {
+	_Translations$orders$detail$en._(this._root);
+
+	final TranslationsEn _root; // ignore: unused_field
+
+	// Translations
+	@override String get itemsTitle => 'To issue';
+	@override String issued({required Object value}) => 'Issued: ${value}';
+	@override String get allIssued => 'All materials issued';
+}
+
 /// The flat map containing all translations for locale <en>.
 /// Only for edge cases! For simple maps, use the map function of this library.
 ///
@@ -300,6 +323,7 @@ extension on TranslationsEn {
 			'operations.location' => 'Location',
 			'operations.material' => 'Material',
 			'operations.onStock' => 'In stock',
+			'operations.orderedQuantity' => 'Ordered',
 			'operations.issueQuantity' => 'Issue quantity',
 			'operations.pickSpool' => 'Choose a spool number',
 			'operations.noSpoolNumber' => 'No spool number',
@@ -321,6 +345,7 @@ extension on TranslationsEn {
 			'operations.toastLoadFailed' => 'Could not load stock from the server.',
 			'operations.toastOffline' => 'No connection to the server - can\'t scan. Check Wi-Fi and try again.',
 			'operations.toastUnknown' => 'Unknown code - no matching material or unit.',
+			'operations.toastNotInOrder' => 'This material isn\'t on this order\'s list.',
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'operations.loadingName' => 'Loading name…',
 			'operations.errorSessionExpired' => 'Your session has expired - please log in again.',
@@ -355,7 +380,18 @@ extension on TranslationsEn {
 			'history.employee' => 'Employee number',
 			'history.empty' => 'No entries.',
 			'history.refresh' => 'Refresh',
-			'orders.placeholder' => 'The orders section is under construction.',
+			'orders.loading' => 'Loading...',
+			'orders.loadError' => 'Failed to load the order list.',
+			'orders.empty' => 'No orders in progress.',
+			'orders.retry' => 'Try again',
+			'orders.line' => 'Line',
+			'orders.requestedBy' => 'Requested by',
+			'orders.productionOrderNo' => 'Order number',
+			'orders.items' => 'items',
+			'orders.detail.itemsTitle' => 'To issue',
+			'orders.detail.issued' => ({required Object value}) => 'Issued: ${value}',
+			'orders.detail.allIssued' => 'All materials issued',
+			'orders.allIssuedBadge' => 'Issued',
 			_ => null,
 		};
 	}

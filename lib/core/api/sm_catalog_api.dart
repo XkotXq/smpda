@@ -7,16 +7,23 @@ import 'api_client.dart';
 /// src/smCatalog.js). Used to resolve/validate an item number scanned or
 /// typed on the PDA, same idea as wps's own lib/smCatalogApi.js.
 class SmCatalogItem {
-  const SmCatalogItem({required this.itemNo, required this.itemName, required this.individualUnits});
+  const SmCatalogItem({required this.itemNo, required this.itemName, required this.individualUnits, required this.unit});
 
   final String itemNo;
   final String itemName;
   final bool individualUnits;
 
+  /// The catalog's own unit of measure for this material (e.g. "kg") - see
+  /// wpsApi's sm_catalog.unit. Used to label a real issued quantity, unlike
+  /// order_items.unit (always "szt.", the order's own piece-count) - see
+  /// features/orders/order_detail_screen.dart.
+  final String unit;
+
   factory SmCatalogItem.fromJson(Map<String, dynamic> json) => SmCatalogItem(
     itemNo: json['itemNo'] as String,
     itemName: json['itemName'] as String? ?? '',
     individualUnits: json['individualUnits'] as bool? ?? false,
+    unit: json['unit'] as String? ?? '',
   );
 }
 
