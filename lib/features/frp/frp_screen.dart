@@ -117,7 +117,7 @@ class _FrpScreenState extends ConsumerState<FrpScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              ShadButton(onPressed: _submitManualEntry, child: Icon(LucideIcons.scanLine)),
+              ShadButton(onPressed: _submitManualEntry, child: Icon(LucideIcons.search)),
             ],
           ),
         ),

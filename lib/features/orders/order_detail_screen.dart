@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart' show KeyDownEvent, KeyEvent, KeyRepeatEvent, LogicalKeyboardKey;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../core/scanner/barcode_scanner_service.dart';
 import '../../core/utils/quantity.dart';
 import '../../i18n/gen/strings.g.dart';
 import '../../router.dart';
+import '../../widgets/enter_to_next.dart';
 import '../../widgets/field_scroll_padding.dart';
 import '../../widgets/require_online.dart';
 import '../../widgets/section_header.dart';
@@ -57,6 +59,15 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   bool _contextSet = false;
 
   final _manualController = TextEditingController();
+
+  /// Which suggestion the up/down arrows have moved to, or -1 for none -
+  /// Enter picks this one instead of submitting the raw text. Reset whenever
+  /// the typed text changes, since the list itself changes with it. Same
+  /// handling as ../materials/receive_issue_screen.dart's own, so the two
+  /// inputs behave identically under the same keys.
+  int _selectedIndex = -1;
+  final _suggestionKeys = <String, GlobalKey>{};
+
   StreamSubscription<String>? _scanSub;
   StreamSubscription<Object>? _errorSub;
   bool _scanning = false;
@@ -78,6 +89,7 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
   void initState() {
     super.initState();
     _receiveIssueController = ref.read(receiveIssueControllerProvider.notifier);
+    _manualController.addListener(_onQueryChanged);
     _load();
     _wireScanner();
     _pollTimer = Timer.periodic(_pollInterval, (_) => _poll());
@@ -147,6 +159,10 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
     }
   }
 
+  void _onQueryChanged() {
+    if (_selectedIndex != -1) setState(() => _selectedIndex = -1);
+  }
+
   void _ensureOrderContext(TransportOrder order) {
     if (_contextSet) return;
     _contextSet = true;
@@ -158,14 +174,75 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
         });
   }
 
+  /// The order's own lines matching what is typed: the text anywhere in the
+  /// item number, or - when it is not just digits - in the name.
+  ///
+  /// **This order's items, not the whole catalog** (which is what Wydanie
+  /// suggests from): anything outside the order is refused by the scan
+  /// itself (ScanNotInOrder), so offering it would only invite a dead end.
+  /// Lines still to do come first - a ticked line is rarely what is being
+  /// looked for, though it stays listed because a second drum of the same
+  /// material is a normal second issue against it.
+  List<OrderItem> _suggestions() {
+    final order = _order;
+    if (order == null) return const [];
+    final query = _manualController.text.trim().toLowerCase();
+    if (query.isEmpty) return const [];
+    final byName = query.contains(RegExp(r'[^0-9]'));
+    final matches = order.items.where(
+      (i) => i.itemNo.toLowerCase().contains(query) || (byName && i.itemName.toLowerCase().contains(query)),
+    );
+    return matches.toList()
+      ..sort((a, b) {
+        if (a.isFulfilled != b.isFulfilled) return a.isFulfilled ? 1 : -1;
+        final aStarts = a.itemNo.toLowerCase().startsWith(query) ? 0 : 1;
+        final bStarts = b.itemNo.toLowerCase().startsWith(query) ? 0 : 1;
+        return aStarts != bStarts ? aStarts - bStarts : a.itemNo.compareTo(b.itemNo);
+      });
+  }
+
   void _scanItemNo(String code) {
     ref.read(barcodeScannerServiceProvider).simulateScan(code);
     _manualController.clear();
+    _selectedIndex = -1;
   }
 
   void _submitManual() {
+    final matches = _suggestions();
+    // The arrows picked one - that wins over the raw text.
+    if (_selectedIndex >= 0 && _selectedIndex < matches.length) {
+      _scanItemNo(matches[_selectedIndex].itemNo);
+      return;
+    }
     final code = _manualController.text.trim();
-    if (code.isNotEmpty) _scanItemNo(code);
+    if (code.isEmpty) return;
+    // A partial number leaving exactly one line on this order is that line.
+    if (matches.length == 1 && matches.first.itemNo != code) {
+      _scanItemNo(matches.first.itemNo);
+      return;
+    }
+    _scanItemNo(code);
+  }
+
+  /// The PDA's up/down arrows move the highlighted suggestion - no
+  /// wrap-around; with nothing highlighted, down takes the first and up the
+  /// last. Everything else is left alone, so the field keeps its own keys.
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return KeyEventResult.ignored;
+    final down = event.logicalKey == LogicalKeyboardKey.arrowDown;
+    if (!down && event.logicalKey != LogicalKeyboardKey.arrowUp) return KeyEventResult.ignored;
+
+    final matches = _suggestions();
+    if (matches.isEmpty) return KeyEventResult.ignored;
+    final next = _selectedIndex == -1
+        ? (down ? 0 : matches.length - 1)
+        : (_selectedIndex + (down ? 1 : -1)).clamp(0, matches.length - 1);
+    setState(() => _selectedIndex = next);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final rowContext = _suggestionKeys[matches[next].itemNo]?.currentContext;
+      if (rowContext != null) Scrollable.ensureVisible(rowContext, duration: const Duration(milliseconds: 120));
+    });
+    return KeyEventResult.handled;
   }
 
   Future<void> _handleCode(String code) async {
@@ -247,20 +324,100 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
           // input (ReceiveIssueScreen) - just without that one's
           // whole-catalog suggestion dropdown, which would only tempt a
           // pick that gets refused anyway (see ScanNotInOrder).
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-            child: Row(
+          Focus(
+            canRequestFocus: false,
+            skipTraversal: true,
+            onKeyEvent: _handleKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: ShadInput(
-                    scrollPadding: kFieldScrollPadding,
-                    controller: _manualController,
-                    placeholder: Text(t.operations.scanPlaceholder),
-                    onSubmitted: (_) => _submitManual(),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: EnterToNext(
+                          isLast: true,
+                          onLast: _submitManual,
+                          child: ShadInput(
+                            scrollPadding: kFieldScrollPadding,
+                            controller: _manualController,
+                            placeholder: Text(t.operations.scanPlaceholder),
+                            onSubmitted: (_) => _submitManual(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // A magnifier, not a scanner: the scanner is the
+                      // hardware trigger, and this button only ever submits
+                      // what was typed.
+                      ShadButton(onPressed: _submitManual, child: const Icon(LucideIcons.search)),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                ShadButton(onPressed: _submitManual, child: const Icon(LucideIcons.scanLine)),
+                // Matching lines of this order as it is typed - tap one, or
+                // walk them with the arrows. Height-capped rather than
+                // Expanded: the order's own item list below it is the point
+                // of the screen and must not be pushed off it.
+                ListenableBuilder(
+                  listenable: _manualController,
+                  builder: (context, _) {
+                    final matches = _suggestions();
+                    if (matches.isEmpty) return const SizedBox.shrink();
+                    return ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 180),
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                        shrinkWrap: true,
+                        itemCount: matches.length,
+                        separatorBuilder: (_, _) => Container(height: 1, color: theme.colorScheme.border),
+                        itemBuilder: (context, index) {
+                          final item = matches[index];
+                          final selected = index == _selectedIndex;
+                          return GestureDetector(
+                            key: _suggestionKeys.putIfAbsent(item.itemNo, GlobalKey.new),
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _scanItemNo(item.itemNo),
+                            child: Container(
+                              color: selected ? theme.colorScheme.muted : null,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    item.isFulfilled ? LucideIcons.circleCheck : LucideIcons.circle,
+                                    size: 16,
+                                    color: item.isFulfilled
+                                        ? theme.colorScheme.primary
+                                        : theme.colorScheme.mutedForeground,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.itemNo,
+                                          style: theme.textTheme.p.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          item.itemName,
+                                          style: theme.textTheme.muted.copyWith(fontSize: 13),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),

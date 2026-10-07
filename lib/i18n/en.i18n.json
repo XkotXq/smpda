@@ -63,7 +63,10 @@
     "toastNotInOrder": "This material isn't on this order's list.",
     "toastNotIssuable": "No available quantity of this material to issue.",
     "loadingName": "Loading name…",
-    "errorSessionExpired": "Your session has expired - please log in again."
+    "errorSessionExpired": "Your session has expired - please log in again.",
+    "fromFloorState": "Does not reduce stock",
+    "issueFrom": "Issue from",
+    "issueFromStockState": "Reduces stock"
   },
   "dashboard": {
     "appTitle": "Stock Manager",

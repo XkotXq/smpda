@@ -24,6 +24,7 @@ class ReceiveIssueState {
     this.error,
     this.orderId,
     this.orderItemQuantities = const {},
+    this.fromFloor = false,
   });
 
   final FlowMode mode;
@@ -49,6 +50,14 @@ class ReceiveIssueState {
   /// how much to issue. Empty whenever [orderId] is null.
   final Map<String, String> orderItemQuantities;
 
+  /// "Z hali": this issue is a length already on the production floor, not
+  /// stock off the shelf. It moves nothing - not the item's own quantity,
+  /// not CIP - and is written to the log alone (see submit's own early
+  /// path). **Reset after every submit**, deliberately: a mode that skips
+  /// the stock write must be chosen again each time rather than quietly
+  /// staying on for the next scan.
+  final bool fromFloor;
+
   ReceiveIssueState copyWith({
     CurrentOperation? current,
     bool clearCurrent = false,
@@ -57,6 +66,7 @@ class ReceiveIssueState {
     bool? submitting,
     String? error,
     bool clearError = false,
+    bool? fromFloor,
   }) {
     return ReceiveIssueState(
       mode: mode,
@@ -66,6 +76,7 @@ class ReceiveIssueState {
       error: clearError ? null : (error ?? this.error),
       orderId: orderId,
       orderItemQuantities: orderItemQuantities,
+      fromFloor: fromFloor ?? this.fromFloor,
     );
   }
 }
@@ -88,6 +99,11 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
   /// material order is only ever fulfilled by issuing, never received) and
   /// clears whatever operation/pick was mid-flight, same reset setMode
   /// already does on a plain mode switch.
+  /// "Z hali" - see ReceiveIssueState.fromFloor.
+  void setFromFloor(bool value) {
+    state = state.copyWith(fromFloor: value);
+  }
+
   void setOrderContext(String orderId, Map<String, String> itemQuantities) {
     state = ReceiveIssueState(mode: FlowMode.issue, orderId: orderId, orderItemQuantities: itemQuantities);
   }
@@ -440,6 +456,48 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       final settings = ref.read(appSettingsProvider).value;
       final operatorName = settings?.operatorName;
 
+      // "Z hali": a length already on the production floor. It left the
+      // warehouse - and CIP - when it was first issued, so using it now
+      // moves nothing: no item write, no CIP push, no availability check
+      // against stock it is not in. The log row is the whole point, and
+      // because it is an `issue` carrying this order's id, the order's own
+      // line ticks off exactly as it would for a drum off the shelf (see
+      // wpsApi's order_items_progress).
+      //
+      // A separate path on purpose. Threading "unless from the floor"
+      // through the stock/CIP code below would put the one flow that must
+      // never double-deduct inside the one that always deducts.
+      // The order context is part of the condition, not just of where the
+      // picker is drawn: "z Hali" exists to serve an order line, and a log
+      // row that moved no stock and belongs to no order would be a write
+      // nobody could account for.
+      if (op is IssueOperation && state.fromFloor && state.orderId != null) {
+        await operationsApi.create([
+          SmOperation(
+            operation: 'issue',
+            itemNo: op.itemNo,
+            itemName: op.itemName,
+            unitId: op.unitId,
+            quantity: formatQuantity(qty),
+            productBatch: op.productBatch,
+            operator: operatorName,
+            orderId: state.orderId,
+            // So the log reads "wydano z Hali" rather than leaving somebody
+            // to infer it from the source flag alone.
+            location: floorLocation,
+            source: 'floor',
+          ),
+        ]);
+        // fromFloor is not carried over: the next scan starts from stock
+        // again unless it is deliberately switched back.
+        state = ReceiveIssueState(
+          mode: state.mode,
+          orderId: state.orderId,
+          orderItemQuantities: state.orderItemQuantities,
+        );
+        return true;
+      }
+
       // Fresh again, not what the scan saw: the operator may have taken a
       // while to type the quantity, and the item is written back whole.
       final existing = await _fetchItem(op.itemNo);
@@ -572,7 +630,11 @@ class ReceiveIssueController extends Notifier<ReceiveIssueState> {
       // items in a row for the same order, unlike every other reset of this
       // state (setMode, clearOrderContext) which is a deliberate context
       // switch away from it.
-      state = ReceiveIssueState(mode: state.mode, orderId: state.orderId, orderItemQuantities: state.orderItemQuantities);
+      state = ReceiveIssueState(
+        mode: state.mode,
+        orderId: state.orderId,
+        orderItemQuantities: state.orderItemQuantities,
+      );
       return true;
     } on AuthFailure catch (e) {
       // The session could not be renewed (and the operator is now logged out).

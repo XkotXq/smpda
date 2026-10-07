@@ -130,6 +130,9 @@ class _Translations$operations$en implements Translations$operations$pl {
 	@override String get toastNotIssuable => 'No available quantity of this material to issue.';
 	@override String get loadingName => 'Loading name…';
 	@override String get errorSessionExpired => 'Your session has expired - please log in again.';
+	@override String get fromFloorState => 'Does not reduce stock';
+	@override String get issueFrom => 'Issue from';
+	@override String get issueFromStockState => 'Reduces stock';
 }
 
 // Path: dashboard
@@ -349,6 +352,9 @@ extension on TranslationsEn {
 			'operations.toastNotIssuable' => 'No available quantity of this material to issue.',
 			'operations.loadingName' => 'Loading name…',
 			'operations.errorSessionExpired' => 'Your session has expired - please log in again.',
+			'operations.fromFloorState' => 'Does not reduce stock',
+			'operations.issueFrom' => 'Issue from',
+			'operations.issueFromStockState' => 'Reduces stock',
 			'dashboard.appTitle' => 'Stock Manager',
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',

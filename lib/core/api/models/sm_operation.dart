@@ -13,6 +13,7 @@ class SmOperation {
     this.operator,
     this.time,
     this.orderId,
+    this.source,
   });
 
   final String? id;
@@ -35,6 +36,13 @@ class SmOperation {
   /// ordinary operation with no order context (the vast majority).
   final String? orderId;
 
+  /// Where the material came from: null/'stock' for an ordinary movement,
+  /// 'floor' for a length already lying on the production hall. A 'floor'
+  /// issue moves **no stock and nothing in CIP** - it left both when it was
+  /// first issued - so it is logged on its own, without the item write that
+  /// every other issue does. See wpsApi's sm_operations.source.
+  final String? source;
+
   factory SmOperation.fromJson(Map<String, dynamic> json) => SmOperation(
     id: json['id'] as String?,
     operation: json['operation'] as String,
@@ -47,6 +55,7 @@ class SmOperation {
     operator: json['operator'] as String?,
     time: json['time'] as String?,
     orderId: json['orderId'] as String?,
+    source: json['source'] as String?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -59,5 +68,6 @@ class SmOperation {
     'productBatch': productBatch,
     'operator': operator,
     if (orderId != null) 'orderId': orderId,
+    if (source != null) 'source': source,
   };
 }

@@ -1,8 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- Required by every build that talks to wpsApi, which is all of them.
+         `flutter create` puts this in src/debug/ and src/profile/ only, so a
+         **release** APK built from the untouched scaffold has no network
+         access at all and every request fails as "nie udało się połączyć z
+         serwerem". It went unnoticed because AGENTS.md documents the debug
+         build as the way to put this app on a phone. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- wpsApi is plain HTTP on the plant LAN (see deploy/README.md: there is
+         no TLS yet). Android blocks cleartext from API 28 up; debug builds get
+         an automatic exemption from the Android Gradle plugin, which is the
+         other half of why a release build was the first one to fail. Narrow
+         this to a network-security-config once the server has a certificate. -->
     <application
         android:label="SM"
         android:name="${applicationName}"
+        android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher"
         tools:replace="android:label">
         <activity

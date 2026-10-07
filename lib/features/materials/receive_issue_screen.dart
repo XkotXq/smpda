@@ -252,7 +252,7 @@ class _ReceiveIssueScreenState extends ConsumerState<ReceiveIssueScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ShadButton(onPressed: _submitManualEntry, child: Icon(LucideIcons.scanLine)),
+                ShadButton(onPressed: _submitManualEntry, child: Icon(LucideIcons.search)),
               ],
             ),
           ),

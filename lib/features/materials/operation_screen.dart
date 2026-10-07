@@ -198,6 +198,12 @@ class _IssueBody extends ConsumerWidget {
     final theme = ShadTheme.of(context);
     final t = context.t;
     final controller = ref.read(receiveIssueControllerProvider.notifier);
+    // Just the one field, so typing a quantity does not rebuild this body
+    // through the whole state object.
+    final fromFloor = ref.watch(receiveIssueControllerProvider.select((s) => s.fromFloor));
+    // "Realizacja zamówień" scopes this controller to one order (see
+    // setOrderContext); everything else is the plain scan flow.
+    final inOrderFlow = ref.watch(receiveIssueControllerProvider.select((s) => s.orderId != null));
     // The quantity to issue sits right under the item details, left-aligned -
     // a modest size (it shrinks for long numbers) rather than a giant centered one.
     TextStyle quantityStyleFor(String text) {
@@ -272,6 +278,25 @@ class _IssueBody extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Where this is being taken from. **Only while fulfilling an
+                // order**: the ordinary scan flow issues from stock and has
+                // nothing to choose between, so the control is not there at
+                // all rather than there-but-pointless.
+                //
+                // Above the quantity, because picking "Hala" changes what
+                // confirming this screen *does* - nothing is deducted
+                // anywhere - and that has to be seen before the number is
+                // typed, not after.
+                if (inOrderFlow) ...[
+                  Text(t.operations.issueFrom, style: theme.textTheme.muted.copyWith(fontSize: 12)),
+                  const SizedBox(height: 6),
+                  _IssueLocationPicker(
+                    systemLocation: op.locationCode.isEmpty ? defaultReceiveLocation : op.locationCode,
+                    fromFloor: fromFloor,
+                    onChanged: controller.setFromFloor,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 Text(t.operations.issueQuantity, style: theme.textTheme.muted.copyWith(fontSize: 12)),
                 const SizedBox(height: 4),
                 if (op.kind == IssueKind.unit)
@@ -293,9 +318,9 @@ class _IssueBody extends ConsumerWidget {
                       placeholder: op.placeholderQuantity == null ? null : Text(op.placeholderQuantity!),
                       placeholderStyle: op.placeholderQuantity == null
                           ? null
-                          : quantityStyleFor(op.placeholderQuantity!).copyWith(
-                              color: theme.colorScheme.mutedForeground.withValues(alpha: 0.5),
-                            ),
+                          : quantityStyleFor(
+                              op.placeholderQuantity!,
+                            ).copyWith(color: theme.colorScheme.mutedForeground.withValues(alpha: 0.5)),
                       style: quantityStyleFor(quantityController.text),
                       padding: EdgeInsets.zero,
                       decoration: ShadDecoration.none.copyWith(color: const Color(0x00000000)),
@@ -437,6 +462,99 @@ class _ReceiveBody extends ConsumerWidget {
             ),
           const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+}
+
+/// Where the material being issued is taken from: the system's own place
+/// for this item (usually MT), or the production floor.
+///
+/// Two options and no more, because there are only two kinds of answer -
+/// "it is in the warehouse where the system says" and "it is already on the
+/// floor". Picking the floor is what makes this issue move no stock and
+/// nothing in CIP (see ReceiveIssueState.fromFloor); the second line under
+/// it says so, since that consequence is invisible otherwise.
+class _IssueLocationPicker extends StatelessWidget {
+  const _IssueLocationPicker({required this.systemLocation, required this.fromFloor, required this.onChanged});
+
+  final String systemLocation;
+  final bool fromFloor;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    return Row(
+      children: [
+        Expanded(
+          child: _LocationOption(
+            label: systemLocation,
+            note: t.operations.issueFromStockState,
+            selected: !fromFloor,
+            onTap: () => onChanged(false),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _LocationOption(
+            label: floorLocation,
+            note: t.operations.fromFloorState,
+            selected: fromFloor,
+            onTap: () => onChanged(true),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LocationOption extends StatelessWidget {
+  const _LocationOption({required this.label, required this.note, required this.selected, required this.onTap});
+
+  final String label;
+  final String note;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ShadTheme.of(context);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? theme.colorScheme.accent : null,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? theme.colorScheme.primary : theme.colorScheme.border,
+            width: selected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.p.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: selected ? theme.colorScheme.primary : theme.colorScheme.foreground,
+              ),
+            ),
+            Text(
+              note,
+              style: theme.textTheme.muted.copyWith(fontSize: 12),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

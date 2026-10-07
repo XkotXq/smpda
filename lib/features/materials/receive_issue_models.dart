@@ -34,6 +34,12 @@ sealed class CurrentOperation {
 /// the field's placeholder, so it is only typed when the goods go elsewhere.
 const defaultReceiveLocation = 'MT';
 
+/// The one place that is not in the system: material already standing on the
+/// production floor. Issuing from here moves nothing - see
+/// ReceiveIssueState.fromFloor - so it exists in this app alone and is never
+/// written to `locations` or to CIP.
+const floorLocation = 'Hala';
+
 /// What a receipt's quantity is when the operator leaves it empty - shown as
 /// the field's placeholder (see OperationScreen's _ReceiveBody), same idea as
 /// [defaultReceiveLocation]: the common case (one spool/bag/reel) needs no

@@ -17,10 +17,9 @@ class IssuedEntry {
 
 /// One line of a transport order, with how much of it has been issued so
 /// far - see wpsapi's schema.sql `order_items_progress` view and
-/// orders.js's own orderRowToApi. `issuedQuantity >= quantity` is "done" -
-/// left for the caller to compare (see [isFulfilled]) rather than a
-/// boolean from the server, same "display concern, not stored" reasoning
-/// as that view's own comment.
+/// orders.js's own orderRowToApi. Whether it counts as done is the caller's
+/// comparison (see [isFulfilled]) rather than a boolean from the server,
+/// same "display concern, not stored" reasoning as that view's own comment.
 class OrderItem {
   const OrderItem({
     required this.itemNo,
@@ -28,6 +27,7 @@ class OrderItem {
     required this.quantity,
     required this.unit,
     required this.issuedQuantity,
+    this.issueCount = 0,
     required this.issuedUnit,
     required this.category,
     required this.catalogUnit,
@@ -40,6 +40,7 @@ class OrderItem {
     quantity: json['quantity'] as String? ?? '0',
     unit: json['unit'] as String? ?? '',
     issuedQuantity: json['issuedQuantity'] as String? ?? '0',
+    issueCount: (json['issueCount'] as num?)?.toInt() ?? 0,
     issuedUnit: json['issuedUnit'] as String? ?? '',
     category: json['category'] as String? ?? '',
     catalogUnit: json['catalogUnit'] as String? ?? '',
@@ -53,6 +54,11 @@ class OrderItem {
   final String quantity;
   final String unit;
   final String issuedQuantity;
+
+  /// How many times something was issued against this line - wpsApi's own
+  /// issue_count, which is now the signal for "done" everywhere rather than
+  /// each client inferring it (this screen inferred it from issuedEntries).
+  final int issueCount;
 
   /// What to label [issuedQuantity] with - the catalog's own unit (e.g.
   /// "kg"), or "szt." for FRP (order_items_progress counts scans, not a
@@ -73,7 +79,20 @@ class OrderItem {
   /// nothing's been issued yet.
   final List<IssuedEntry> issuedEntries;
 
-  bool get isFulfilled => (double.tryParse(issuedQuantity) ?? 0) >= (double.tryParse(quantity) ?? 0);
+  /// Done once **anything** has been issued against this line - not once
+  /// the issued amount reaches [quantity].
+  ///
+  /// It compared the two numbers until 2026-10-02, which was wrong here:
+  /// [quantity] is always a piece count ("10 szt.") while [issuedQuantity]
+  /// is the catalog's own summed amount in the catalog's own unit, so a line
+  /// ordered as 10 pieces demanded 10 **kg** before it would tick. On this
+  /// screen the line is a checklist entry - "I have dealt with this
+  /// material" - and one issue is what deals with it; a second drum of the
+  /// same material is a second issue against a line already ticked.
+  ///
+  /// [issuedEntries] is the signal rather than a quantity, because it is
+  /// unit-independent: one scan is one issue whatever it weighed.
+  bool get isFulfilled => issueCount > 0;
 
   /// The amount to actually show next to "Wydano" - FRP's own
   /// issuedQuantity/issuedUnit is a drum COUNT ("2 szt.", correct for

@@ -227,6 +227,15 @@ class Translations$operations$pl {
 
 	/// pl: 'Sesja wygasła - zaloguj się ponownie.'
 	String get errorSessionExpired => 'Sesja wygasła - zaloguj się ponownie.';
+
+	/// pl: 'Nie zdejmuje ze stanu'
+	String get fromFloorState => 'Nie zdejmuje ze stanu';
+
+	/// pl: 'Wydanie z'
+	String get issueFrom => 'Wydanie z';
+
+	/// pl: 'Zdejmuje ze stanu'
+	String get issueFromStockState => 'Zdejmuje ze stanu';
 }
 
 // Path: dashboard
@@ -550,6 +559,9 @@ extension on Translations {
 			'operations.toastNotIssuable' => 'Brak dostępnej ilości tego materiału do wydania.',
 			'operations.loadingName' => 'Pobieranie nazwy…',
 			'operations.errorSessionExpired' => 'Sesja wygasła - zaloguj się ponownie.',
+			'operations.fromFloorState' => 'Nie zdejmuje ze stanu',
+			'operations.issueFrom' => 'Wydanie z',
+			'operations.issueFromStockState' => 'Zdejmuje ze stanu',
 			'dashboard.appTitle' => 'Stock Manager',
 			'dashboard.online' => 'Online',
 			'dashboard.offline' => 'Offline',

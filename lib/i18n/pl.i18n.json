@@ -63,7 +63,10 @@
     "toastNotInOrder": "Ten materiał nie znajduje się na liście tego zamówienia.",
     "toastNotIssuable": "Brak dostępnej ilości tego materiału do wydania.",
     "loadingName": "Pobieranie nazwy…",
-    "errorSessionExpired": "Sesja wygasła - zaloguj się ponownie."
+    "errorSessionExpired": "Sesja wygasła - zaloguj się ponownie.",
+    "fromFloorState": "Nie zdejmuje ze stanu",
+    "issueFrom": "Wydanie z",
+    "issueFromStockState": "Zdejmuje ze stanu"
   },
   "dashboard": {
     "appTitle": "Stock Manager",
