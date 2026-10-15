@@ -64,6 +64,13 @@ moves focus on Enter, and `core/session/numeric_keyboard.dart` keeps the
 on-screen numeric keyboard **off by default** - the device has real keys, so
 the touch keyboard would just cover half the screen.
 
+Two screens answer keys directly, and a third would follow the same shape
+(`Focus` with `onKeyEvent`, never a Material shortcut map):
+- the **dashboard** matches a number key against its own row list, so a
+  module is one key away (`_digitKeys` in `dashboard_screen.dart`);
+- **Obsługa zamówień** takes **up/down to move the selection and Enter to
+  open it** (asked 2026-10-15) - see "Orders" below.
+
 ## Orders: what must not be broken
 - An ordinary Materiały SM issue (module 1) **must not count** toward a
   transport order's progress. Only an issue performed from inside an order
@@ -81,6 +88,30 @@ the touch keyboard would just cover half the screen.
   **do not "simplify" the two into one**.
 - Both order screens poll (`Timer.periodic`, 3 s, with a `_polling` guard)
   so a status change shows up without pulling to refresh.
+- **The queue is driven by the arrow keys** (`orders_screen.dart`,
+  2026-10-15): up/down move the selection, Enter opens it, and a tap does
+  exactly what Enter does (both go through `_open`, so the two cannot
+  drift apart - taking focus back when the detail screen pops included).
+  The operator is holding a scanner; finding a row with a thumb is the
+  part worth removing.
+  - **The selection is an order id, never an index.** This list is
+    replaced every three seconds and an order finished on another PDA
+    drops out of it, so an index would quietly come to mean a different
+    order - and Enter would open the one nobody selected. That is also
+    why `_keepSelectionValid()` runs on **every** list write, not just
+    the first load: it selects the first row when nothing is selected
+    (so the arrows work on the first press) and falls back to the first
+    when the selected order is gone.
+  - The selected row is **drawn** as selected (accent fill, primary
+    border): a selection nothing shows is a key press that did nothing.
+  - It scrolls **the least that works** - `ensureVisible` with
+    `keepVisibleAtEnd` going down and `keepVisibleAtStart` going up,
+    after the frame that moved the highlight (a row scrolled out of the
+    list has no context yet). Row keys are per order id, like the
+    selection.
+  - No wrap-around at either end, the same rule wps's own list keyboard
+    follows: on a queue that reorders itself, wrapping reads as a jump to
+    an unrelated order.
 
 ## Riverpod traps already hit here (both cost a live crash)
 1. **Never call `ref.read(...)` from `dispose()`** - it throws
